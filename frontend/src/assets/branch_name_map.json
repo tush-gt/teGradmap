@@ -1,0 +1,377 @@
+{
+  "_meta": {
+    "project": "GradMap",
+    "version": "1.1.0",
+    "description": "Maps raw branch name variants extracted from CET PDFs to canonical branch names. All keys are lowercased and stripped for matching. Add new variants here — never patch normalization logic into scripts.",
+    "key_format": "lowercase, stripped, no leading/trailing whitespace",
+    "value_format": "Title Case canonical name",
+    "last_updated": "2026-05-09",
+    "instructions": {
+      "adding_variants": "When a new raw branch name appears post-extraction, add it under the correct canonical name. Do NOT create a new canonical unless it is genuinely a new discipline.",
+      "unmapped_handling": "If a branch cannot be confidently mapped, leave it as UNKNOWN_BRANCH and log it. Do NOT guess.",
+      "wrapped_artifacts": "Extraction sometimes wraps two columns into one cell e.g. 'Electronics and\\nTelecommunication Engg'. These are included as variants with \\n replaced by space."
+    }
+  },
+  "Computer Engineering": [
+    "computer engineering",
+    "computer engg",
+    "computer engg.",
+    "comp engineering",
+    "comp engg",
+    "comp engg.",
+    "ce",
+    "comp. engg",
+    "computer engineering (shift - ii)",
+    "computer engineering (shift 2)",
+    "computer engineering (shift ii)",
+    "computer engineering (regional language)",
+    "computer engg (shift - ii)",
+    "computer engg. (shift - ii)"
+  ],
+  "Information Technology": [
+    "information technology",
+    "info technology",
+    "info. technology",
+    "it",
+    "i.t.",
+    "inforamtion technology",
+    "information tech"
+  ],
+  "Electronics and Telecommunication Engineering": [
+    "electronics and telecommunication engineering",
+    "electronics & telecommunication engineering",
+    "electronics and telecommunication engg",
+    "electronics & telecommunication engg",
+    "electronics and telecommunication engg.",
+    "electronics & telecommunication engg.",
+    "e&tc",
+    "extc",
+    "e & tc",
+    "e&tc engineering",
+    "electronics and telecomm engg",
+    "elex & telecomm",
+    "electronics and\ntelecommunication engg",
+    "electronics and telecommunication\nengg",
+    "electronic and telecommunication engineering",
+    "electronics & telecom engineering",
+    "electronics and telecommunication"
+  ],
+  "Mechanical Engineering": [
+    "mechanical engineering",
+    "mechanical engg",
+    "mechanical engg.",
+    "mech",
+    "mech engg",
+    "mechanical engineering (shift - ii)",
+    "mechanical engineering (shift 2)",
+    "mechanical engineering (shift ii)",
+    "mechanical engg (shift - ii)"
+  ],
+  "Civil Engineering": [
+    "civil engineering",
+    "civil engg",
+    "civil engg.",
+    "civil"
+  ],
+  "Electrical Engineering": [
+    "electrical engineering",
+    "electrical engg",
+    "electrical engg.",
+    "elec",
+    "elect engg",
+    "electrical engg[electronics and power]",
+    "electrical engg [electronics and power]",
+    "electrical engg[electronics & power]"
+  ],
+  "Electronics Engineering": [
+    "electronics engineering",
+    "electronics engg",
+    "electronics engg.",
+    "elex",
+    "elex engg",
+    "electronics engineering",
+    "electronics engg",
+    "electronics engineering ( vlsi design and technology)"
+  ],
+  "Artificial Intelligence and Data Science": [
+    "artificial intelligence and data science",
+    "artificial intelligence & data science",
+    "ai and data science",
+    "ai & data science",
+    "aids",
+    "ai ds",
+    "artificial intelligence (ai) and data science",
+    "artificial intelligence(ai) and data science",
+    "artificial intelligence and\ndata science",
+    "artificial intelligence (ai)\nand data science",
+    "ai and ds",
+    "ai & ds"
+  ],
+  "Artificial Intelligence and Machine Learning": [
+    "artificial intelligence and machine learning",
+    "artificial intelligence & machine learning",
+    "ai and ml",
+    "ai & ml",
+    "aiml",
+    "ai ml",
+    "artificial intelligence and machine\nlearning",
+    "artificial intelligence and\nmachine learning",
+    "computer science and engineering(artificial intelligence and machine learning)",
+    "computer science and engineering (artificial intelligence and machine learning)"
+  ],
+  "Computer Science and Engineering": [
+    "computer science and engineering",
+    "computer science & engineering",
+    "cs and engineering",
+    "cse",
+    "cs engg",
+    "computer science engg",
+    "cs & engg",
+    "computer science and\nengineering"
+  ],
+  "Computer Science and Engineering (Artificial Intelligence)": [
+    "computer science and engineering(artificial",
+    "computer science and engineering (artificial",
+    "computer science and engineering(artificial intelligence)",
+    "computer science and engineering (artificial intelligence)",
+    "cse (ai)",
+    "cs&e (ai)",
+    "computer science and engineering(artificial\nintelligence)",
+    "computer science and\nengineering(artificial",
+    "computer science and\nengineering (artificial"
+  ],
+  "Computer Science and Engineering (Data Science)": [
+    "computer science and engineering(data science)",
+    "computer science and engineering (data science)",
+    "cse (ds)",
+    "computer science and engineering(data\nscience)",
+    "computer science and\nengineering(data science)"
+  ],
+  "Computer Science and Engineering (Cyber Security)": [
+    "computer science and engineering(cyber",
+    "computer science and engineering (cyber",
+    "computer science and engineering(cyber security)",
+    "computer science and engineering (cyber security)",
+    "cse (cyber security)",
+    "computer science and engineering (cyber\nsecurity)",
+    "computer science and\nengineering(cyber"
+  ],
+  "Computer Science and Engineering (Internet of Things)": [
+    "computer science and engineering (internet of",
+    "computer science and engineering(internet of",
+    "computer science and engineering (internet of things)",
+    "computer science and engineering(internet of things)",
+    "cse (iot)",
+    "computer science and engineering (iot)",
+    "computer science and\nengineering (internet of",
+    "computer science and engineering (internet of\nthings)",
+    "computer science and engineering (internet of things and cyber security including block chain"
+  ],
+  "Computer Science and Business Systems": [
+    "computer science and business systems",
+    "computer science & business systems",
+    "csbs",
+    "cs & business systems"
+  ],
+  "Computer Science and Design": [
+    "computer science and design",
+    "cs and design",
+    "csd"
+  ],
+  "Computer Science and Information Technology": [
+    "computer science and information technology",
+    "cs and information technology",
+    "cs & it",
+    "csit"
+  ],
+  "Computer Technology": [
+    "computer technology",
+    "comp technology",
+    "comp. technology"
+  ],
+  "Chemical Engineering": [
+    "chemical engineering",
+    "chemical engg",
+    "chemical engg.",
+    "chem"
+  ],
+  "Instrumentation Engineering": [
+    "instrumentation engineering",
+    "instrumentation engg",
+    "instrumentation engg.",
+    "instru",
+    "inst engg"
+  ],
+  "Instrumentation and Control Engineering": [
+    "instrumentation and control engineering",
+    "instrumentation and control engg",
+    "instrumentation & control engineering",
+    "instrumentation and control\nengineering",
+    "instrumentation and control engg."
+  ],
+  "Production Engineering": [
+    "production engineering",
+    "production engg",
+    "production engg.",
+    "prod"
+  ],
+  "Internet of Things": [
+    "internet of things",
+    "iot",
+    "internet of things (iot)",
+    "internet of things(iot)"
+  ],
+  "Robotics and Automation": [
+    "robotics and automation",
+    "robotics & automation",
+    "automation and robotics"
+  ],
+  "Cyber Security": [
+    "cyber security",
+    "cybersecurity",
+    "cyber-security"
+  ],
+  "Data Science": [
+    "data science"
+  ],
+  "Data Engineering": [
+    "data engineering",
+    "data engg",
+    "data engg."
+  ],
+  "Artificial Intelligence": [
+    "artificial intelligence",
+    "ai"
+  ],
+  "Electronics and Computer Science": [
+    "electronics and computer science",
+    "electronics & computer science",
+    "electronics and computer\nscience"
+  ],
+  "Electronics and Computer Engineering": [
+    "electronics and computer engineering",
+    "electronics & computer engineering",
+    "electronics and computer\nengineering"
+  ],
+  "Electronics and Communication Engineering": [
+    "electronics and communication",
+    "electronics and communication engineering",
+    "electronics & communication",
+    "electronics and\ncommunication"
+  ],
+  "Bio Medical Engineering": [
+    "bio medical engineering",
+    "biomedical engineering",
+    "bio-medical engineering"
+  ],
+  "Bio Technology": [
+    "bio technology",
+    "biotechnology",
+    "bio-technology"
+  ],
+  "Mechatronics Engineering": [
+    "mechatronics engineering",
+    "mechatronics engg",
+    "mechanical and mechatronics engineering",
+    "mechanical and\nmechatronics engineering",
+    "mechatronics engineering",
+    "mechatronics engg"
+  ],
+  "Mechanical and Automation Engineering": [
+    "mechanical & automation engineering",
+    "mechanical and automation engineering"
+  ],
+  "Manufacturing Science and Engineering": [
+    "manufacturing science and engineering",
+    "manufacturing science & engineering",
+    "manufacturing science and\nengineering"
+  ],
+  "Metallurgy and Material Technology": [
+    "metallurgy and material technology",
+    "metallurgy & material technology",
+    "metallurgy and material\ntechnology"
+  ],
+  "Pharmaceuticals Chemistry and Technology": [
+    "pharmaceuticals chemistry and technology",
+    "pharmaceutical chemistry and technology",
+    "pharmaceuticals chemistry and\ntechnology"
+  ],
+  "Polymer Engineering and Technology": [
+    "polymer engineering and technology",
+    "polymer engineering & technology",
+    "polymer engineering and\ntechnology"
+  ],
+  "Food Engineering and Technology": [
+    "food engineering and technology",
+    "food engineering & technology",
+    "food engineering and\ntechnology",
+    "food technology"
+  ],
+  "Printing Technology": [
+    "printing technology",
+    "print technology",
+    "printing and packing technology"
+  ],
+  "Surface Coating Technology": [
+    "surface coating technology",
+    "surface coating\ntechnology"
+  ],
+  "Oil, Oleochemicals and Surfactants Technology": [
+    "oil,oleochemicals and surfactants technology",
+    "oil, oleochemicals and surfactants technology",
+    "oil,oleochemicals and\nsurfactants technology"
+  ],
+  "Dyestuff Technology": [
+    "dyestuff technology"
+  ],
+  "Fibres and Textile Processing Technology": [
+    "fibres and textile processing technology",
+    "fibres and textile\nprocessing technology"
+  ],
+  "Chemical Engineering Technology": [
+    "chemical engineering technology"
+  ],
+  "Aeronautical Engineering": [
+    "aeronautical engineering",
+    "aeronautical engg"
+  ],
+  "Automobile Engineering": [
+    "automobile engineering",
+    "automobile engg"
+  ],
+  "Textile Engineering": [
+    "textile engineering",
+    "textile engineering / technology",
+    "textile engineering/technology",
+    "textile technology"
+  ],
+  "Industrial IoT": [
+    "industrial iot",
+    "industrial internet of things"
+  ],
+  "Robotics and Artificial Intelligence": [
+    "robotics and artificial intelligence",
+    "robotics & artificial intelligence"
+  ],
+  "Computer Science and Engineering (IoT)": [
+    "computer science and engineering (iot)",
+    "computer science and engineering(iot)",
+    "cse (iot)"
+  ],
+  "Civil and Environmental Engineering": [
+    "civil and environmental engineering",
+    "civil & environmental engineering"
+  ],
+  "Structural Engineering": [
+    "structural engineering"
+  ],
+  "Mining Engineering": [
+    "mining engineering"
+  ],
+  "Agricultural Engineering": [
+    "agricultural engineering"
+  ],
+  "Computer Science": [
+    "computer science"
+  ]
+}

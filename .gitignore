@@ -1,0 +1,83 @@
+# ==============================================================================
+# GRADMAP — ROOT GITIGNORE
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# PYTHON (BACKEND)
+# ------------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+backend/venv/
+backend/.venv/
+backend/env/
+backend/build/
+backend/dist/
+backend/*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ------------------------------------------------------------------------------
+# NODE / FRONTEND
+# ------------------------------------------------------------------------------
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.vite/
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ------------------------------------------------------------------------------
+# DATASETS & LARGE FILES (CRITICAL)
+# ------------------------------------------------------------------------------
+# We do not track raw or intermediate data processing artifacts.
+backend/raw/
+backend/extracted/
+backend/normalized/
+backend/merged/
+backend/features/
+backend/quarantine/
+backend/analytics/*.csv
+backend/analytics/*.txt
+
+# Exceptions: Allow configuration and placeholders
+!**/configs/
+!**/configs/*.json
+!**/.gitkeep
+
+# ------------------------------------------------------------------------------
+# MODELS & CACHE
+# ------------------------------------------------------------------------------
+*.pkl
+*.joblib
+*.parquet
+backend/logs/
+backend/temp/
+backend/cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ------------------------------------------------------------------------------
+# IDE & OS FILES
+# ------------------------------------------------------------------------------
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# ──────────────────────────────────────────────────────────────────────────────
+# NOTE: To track a specific sample file, use: git add -f <path/to/file>
+# ──────────────────────────────────────────────────────────────────────────────

@@ -1,0 +1,162 @@
+{
+  "_meta": {
+    "project": "GradMap",
+    "version": "1.0.0",
+    "status": "FINALIZED",
+    "created": "2026-05-08",
+    "description": "Unified schema for all GradMap pipeline stages. Every extracted, cleaned, normalized, and validated CSV must conform to this schema. Do not modify without updating schema_notes.md and bumping version."
+  },
+
+  "fields": {
+    "year": {
+      "type": "int",
+      "nullable": false,
+      "example": 2023,
+      "description": "Academic year of the CAP round. Extracted from filename. e.g. 2022ENGG_CAP1 → 2022"
+    },
+    "round": {
+      "type": "int",
+      "nullable": false,
+      "example": 1,
+      "allowed_values": [1, 2, 3],
+      "description": "CAP round number. Extracted from filename. e.g. CAP2 → 2"
+    },
+    "quota_type": {
+      "type": "str",
+      "nullable": false,
+      "example": "AI",
+      "allowed_values": ["AI", "MH"],
+      "description": "Quota type. AI = All India. MH = Maharashtra. Extracted from filename. Files with _AI_ are AI quota, others are MH."
+    },
+    "choice_code": {
+      "type": "str",
+      "nullable": true,
+      "example": "600624510",
+      "description": "Official CET choice code representing institute + branch combination. NOT the same as institute_code. Preserve raw value exactly as extracted."
+    },
+    "institute_code": {
+      "type": "str",
+      "nullable": false,
+      "example": "1234",
+      "description": "Official CET institute code. Primary key for college identification. Must be present. Do not allow nulls."
+    },
+    "college_name": {
+      "type": "str",
+      "nullable": false,
+      "example": "Veermata Jijabai Technological Institute",
+      "description": "Raw college name as extracted from PDF. Will be normalized in the normalize stage. Do not normalize here."
+    },
+    "branch_code": {
+      "type": "str",
+      "nullable": true,
+      "example": "CE",
+      "description": "Branch code as present in source document. Nullable because MH PDFs may not always contain explicit branch codes. AI CSVs typically do."
+    },
+    "branch_name": {
+      "type": "str",
+      "nullable": false,
+      "example": "Computer Engineering",
+      "description": "Raw branch name as extracted. Will be normalized in the normalize stage using branch_map.json. Do not normalize here."
+    },
+    "category": {
+      "type": "str",
+      "nullable": false,
+      "example": "GOPENH",
+      "allowed_values": [
+        "GOPENH",
+        "LOPENH",
+        "GOPENO",
+        "LOPENO",
+        "GOBCH",
+        "LOBCH",
+        "GOBCO",
+        "LOBCO",
+        "GSTH",
+        "LSTH",
+        "GSTO",
+        "LSTO",
+        "GVJH",
+        "LVJH",
+        "GVJO",
+        "LVJO",
+        "GNTAH",
+        "LNTAH",
+        "GNTAO",
+        "LNTAO",
+        "GNTBH",
+        "LNTBH",
+        "GNTBO",
+        "LNTBO",
+        "GNTCH",
+        "LNTCH",
+        "GNTCO",
+        "LNTCO",
+        "TFWS",
+        "MI",
+        "PWD",
+        "DEF",
+        "EWS",
+        "AI"
+      ],
+      "description": "Quota-category code. This is the single source of truth for quota, gender, and home university type. Do NOT split this into separate columns at extraction stage. Derive gender and home_university_type in the feature stage from this field using category_map.json."
+    },
+    "percentile_cutoff": {
+      "type": "float",
+      "nullable": true,
+      "example": 94.52,
+      "validation": {
+        "min": 0.0,
+        "max": 100.0
+      },
+      "description": "Closing percentile cutoff for this row. Nullable only when truly absent in source. Must be between 0 and 100. Flag rows outside this range as corrupt."
+    },
+    "rank_cutoff": {
+      "type": "int",
+      "nullable": true,
+      "example": 1523,
+      "description": "Closing rank cutoff. Nullable. May not be present in all PDFs. Do not impute or estimate. Leave null if absent."
+    },
+    "exam_type": {
+        "type": "str",
+        "nullable": false,
+        "allowed_values": [
+            "JEE(Main)",
+            "MHT-CET"
+        ],
+        "description": "Exam source associated with this cutoff row. Extracted directly from AI PDFs/CSVs. Critical for maintaining statistical separation between JEE and CET percentile distributions."
+    },
+    "source_file": {
+      "type": "str",
+      "nullable": false,
+      "example": "2023ENGG_CAP2_AI_CutOff.pdf",
+      "description": "Original source filename. Added at extraction stage. Never modified downstream. Critical for debugging and traceability. If a row looks wrong, this tells you exactly which PDF to inspect."
+    }
+  },
+
+  "primary_composite_key": [
+    "year",
+    "round",
+    "quota_type",
+    "institute_code",
+    "branch_name",
+    "category"
+  ],
+
+  "notes": {
+    "do_not_derive_at_extraction": [
+      "gender",
+      "home_university_type",
+      "seat_type"
+    ],
+    "derive_later_in_features_stage": [
+      "gender — derive from category using category_map.json",
+      "home_university_type — derive from category using category_map.json",
+      "branch_competitiveness_score — future ML feature",
+      "cutoff_trend — future ML feature"
+    ],
+    "normalization_deferred": [
+      "college_name — normalize in normalize stage using college_map.json",
+      "branch_name — normalize in normalize stage using branch_map.json"
+    ]
+  }
+}

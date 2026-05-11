@@ -1,0 +1,263 @@
+{
+  "_meta": {
+    "project": "GradMap",
+    "version": "1.0.0",
+    "description": "Maps raw branch name variants found in CET PDFs to a single canonical branch name. Used exclusively in the normalize stage. NEVER hardcode normalization logic in extraction scripts. Always add new variants here instead of patching scripts.",
+    "instructions": {
+      "adding_variants": "When extraction produces an unrecognized branch name, add it under the correct canonical entry's 'variants' list. Do not create a new canonical entry unless it is genuinely a different branch.",
+      "canonical_format": "Title Case. Full name. No abbreviations. Example: 'Computer Engineering' not 'Comp Engg'.",
+      "unknown_handling": "If a raw branch name cannot be confidently mapped, do NOT guess. Flag it in the validate stage and add to the 'unmapped_variants_log' in your validation report."
+    }
+  },
+
+  "branches": {
+
+    "Computer Engineering": {
+      "canonical": "Computer Engineering",
+      "variants": [
+        "Computer Engineering",
+        "Computer Engg",
+        "Computer Engg.",
+        "Comp Engineering",
+        "Comp Engg",
+        "COMP",
+        "CE",
+        "computer engineering",
+        "COMPUTER ENGINEERING",
+        "Computer Engg. (Shift - II)",
+        "Computer Engineering (Shift 2)",
+        "Computer Engineering (Shift II)"
+      ]
+    },
+
+    "Information Technology": {
+      "canonical": "Information Technology",
+      "variants": [
+        "Information Technology",
+        "Info Technology",
+        "Info. Technology",
+        "IT",
+        "I.T.",
+        "information technology",
+        "INFORMATION TECHNOLOGY",
+        "Inforamtion Technology"
+      ]
+    },
+
+    "Electronics and Telecommunication Engineering": {
+      "canonical": "Electronics and Telecommunication Engineering",
+      "variants": [
+        "Electronics and Telecommunication Engineering",
+        "Electronics & Telecommunication Engineering",
+        "Electronics & Telecommunication Engg",
+        "Electronics & Telecommunication Engg.",
+        "E&TC",
+        "EXTC",
+        "E & TC",
+        "E&TC Engineering",
+        "Electronics and Telecomm Engg",
+        "Elex & Telecomm",
+        "ELECTRONICS AND TELECOMMUNICATION ENGINEERING"
+      ]
+    },
+
+    "Mechanical Engineering": {
+      "canonical": "Mechanical Engineering",
+      "variants": [
+        "Mechanical Engineering",
+        "Mechanical Engg",
+        "Mechanical Engg.",
+        "MECH",
+        "Mech Engg",
+        "mechanical engineering",
+        "MECHANICAL ENGINEERING",
+        "Mechanical Engineering (Shift - II)",
+        "Mechanical Engineering (Shift 2)"
+      ]
+    },
+
+    "Civil Engineering": {
+      "canonical": "Civil Engineering",
+      "variants": [
+        "Civil Engineering",
+        "Civil Engg",
+        "Civil Engg.",
+        "CIVIL",
+        "civil engineering",
+        "CIVIL ENGINEERING"
+      ]
+    },
+
+    "Electrical Engineering": {
+      "canonical": "Electrical Engineering",
+      "variants": [
+        "Electrical Engineering",
+        "Electrical Engg",
+        "Electrical Engg.",
+        "ELEC",
+        "Elect Engg",
+        "electrical engineering",
+        "ELECTRICAL ENGINEERING"
+      ]
+    },
+
+    "Electronics Engineering": {
+      "canonical": "Electronics Engineering",
+      "variants": [
+        "Electronics Engineering",
+        "Electronics Engg",
+        "Electronics Engg.",
+        "ELEX",
+        "Elex Engg",
+        "electronics engineering",
+        "ELECTRONICS ENGINEERING"
+      ]
+    },
+
+    "Artificial Intelligence and Data Science": {
+      "canonical": "Artificial Intelligence and Data Science",
+      "variants": [
+        "Artificial Intelligence and Data Science",
+        "Artificial Intelligence & Data Science",
+        "AI and Data Science",
+        "AI & Data Science",
+        "AIDS",
+        "AI DS",
+        "Artificial Intelligence And Data Science",
+        "ARTIFICIAL INTELLIGENCE AND DATA SCIENCE"
+      ]
+    },
+
+    "Artificial Intelligence and Machine Learning": {
+      "canonical": "Artificial Intelligence and Machine Learning",
+      "variants": [
+        "Artificial Intelligence and Machine Learning",
+        "Artificial Intelligence & Machine Learning",
+        "AI and ML",
+        "AI & ML",
+        "AIML",
+        "AI ML",
+        "Artificial Intelligence And Machine Learning",
+        "ARTIFICIAL INTELLIGENCE AND MACHINE LEARNING"
+      ]
+    },
+
+    "Data Engineering": {
+      "canonical": "Data Engineering",
+      "variants": [
+        "Data Engineering",
+        "Data Engg",
+        "Data Engg.",
+        "DE",
+        "data engineering",
+        "DATA ENGINEERING"
+      ]
+    },
+
+    "Computer Science and Engineering": {
+      "canonical": "Computer Science and Engineering",
+      "variants": [
+        "Computer Science and Engineering",
+        "Computer Science & Engineering",
+        "CS and Engineering",
+        "CSE",
+        "CS Engg",
+        "Computer Science Engg",
+        "COMPUTER SCIENCE AND ENGINEERING",
+        "Computer Science And Engineering"
+      ]
+    },
+
+    "Computer Science and Business Systems": {
+      "canonical": "Computer Science and Business Systems",
+      "variants": [
+        "Computer Science and Business Systems",
+        "Computer Science & Business Systems",
+        "CSBS",
+        "CS & Business Systems",
+        "COMPUTER SCIENCE AND BUSINESS SYSTEMS"
+      ]
+    },
+
+    "Chemical Engineering": {
+      "canonical": "Chemical Engineering",
+      "variants": [
+        "Chemical Engineering",
+        "Chemical Engg",
+        "Chemical Engg.",
+        "CHEM",
+        "chemical engineering",
+        "CHEMICAL ENGINEERING"
+      ]
+    },
+
+    "Instrumentation Engineering": {
+      "canonical": "Instrumentation Engineering",
+      "variants": [
+        "Instrumentation Engineering",
+        "Instrumentation Engg",
+        "Instrumentation Engg.",
+        "INSTRU",
+        "Inst Engg",
+        "INSTRUMENTATION ENGINEERING"
+      ]
+    },
+
+    "Production Engineering": {
+      "canonical": "Production Engineering",
+      "variants": [
+        "Production Engineering",
+        "Production Engg",
+        "Production Engg.",
+        "PROD",
+        "PRODUCTION ENGINEERING"
+      ]
+    },
+
+    "Printing Technology": {
+      "canonical": "Printing Technology",
+      "variants": [
+        "Printing Technology",
+        "Print Technology",
+        "PRINT TECHNOLOGY",
+        "Printing Tech"
+      ]
+    },
+
+    "Internet of Things": {
+      "canonical": "Internet of Things",
+      "variants": [
+        "Internet of Things",
+        "IOT",
+        "IoT",
+        "Internet Of Things",
+        "INTERNET OF THINGS"
+      ]
+    },
+
+    "Robotics and Automation": {
+      "canonical": "Robotics and Automation",
+      "variants": [
+        "Robotics and Automation",
+        "Robotics & Automation",
+        "ROBOTICS AND AUTOMATION",
+        "Robotics Automation"
+      ]
+    },
+
+    "Cyber Security": {
+      "canonical": "Cyber Security",
+      "variants": [
+        "Cyber Security",
+        "Cybersecurity",
+        "Cyber-Security",
+        "CYBER SECURITY"
+      ]
+    }
+  },
+
+  "unmapped_variants_log": {
+    "description": "When extraction produces a branch name that does not match any variant above, log it here temporarily during development. Once identified, move it to the correct canonical entry above and remove from this log. Do NOT leave entries here permanently.",
+    "entries": []
+  }
+}

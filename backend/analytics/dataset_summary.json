@@ -1,0 +1,53 @@
+{
+  "generated_at": "2026-05-10T12:23:21",
+  "total_rows": 231997,
+  "ai_rows": 14493,
+  "mh_rows": 217504,
+  "unique_colleges": 706,
+  "unique_branches": 269,
+  "unique_categories": 102,
+  "unique_choice_codes": 6247,
+  "years_covered": [
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "rounds_covered": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "min_percentile": 0.0,
+  "max_percentile": 100.0,
+  "unknown_branches": 2096,
+  "source_files": [
+    "2022ENGG_CAP1_AI_CutOff_AI.pdf",
+    "2022ENGG_CAP1_CutOff_MH.pdf",
+    "2022ENGG_CAP2_AI_CutOff.pdf",
+    "2022ENGG_CAP2_CutOff_MH.pdf",
+    "2022ENGG_CAP3_AI_CutOff.pdf",
+    "2022ENGG_CAP3_CutOff_MH.pdf",
+    "2023ENGG_CAP1_AI_CutOff.pdf",
+    "2023ENGG_CAP1_CutOff_MH.pdf",
+    "2023ENGG_CAP2_AI_CutOff.pdf",
+    "2023ENGG_CAP2_CutOff_MH.pdf",
+    "2023ENGG_CAP3_AI_CutOff.pdf",
+    "2023ENGG_CAP3_CutOff_MH.pdf",
+    "2024ENGG_CAP1_AI_CutOff.pdf",
+    "2024ENGG_CAP1_CutOff_MH.pdf",
+    "2024ENGG_CAP2_AI_CutOff.pdf",
+    "2024ENGG_CAP2_CutOff_MH.pdf",
+    "2024ENGG_CAP3_AI_CutOff.pdf",
+    "2024ENGG_CAP3_CutOff_MH.pdf",
+    "2025ENGG_CAP1_AI_CutOff.csv",
+    "2025ENGG_CAP1_CutOff_MH.csv",
+    "2025ENGG_CAP2_AI_CutOff.csv",
+    "2025ENGG_CAP2_CutOff_MH.csv",
+    "2025ENGG_CAP3_AI_CutOff.csv",
+    "2025ENGG_CAP3_CutOff_MH.csv",
+    "2025ENGG_CAP4_AI_CutOff.csv",
+    "2025ENGG_CAP4_CutOff_MH.csv"
+  ]
+}

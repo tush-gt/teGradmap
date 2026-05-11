@@ -1,0 +1,10 @@
+{
+  "potential_corrupted_rows": 325,
+  "unknown_branch_rows": 2007,
+  "clean_recommendation_rows": 229665,
+  "total_rows": 231997,
+  "corruption_breakdown": {
+    "invalid_percentile": 63,
+    "row_contamination": 262
+  }
+}

@@ -1,0 +1,271 @@
+{
+  "_meta": {
+    "project": "GradMap",
+    "version": "1.0.0",
+    "description": "Maps every known CET category code to its canonical properties. Used in the features stage to derive gender and home_university_type from the category field. Do NOT use this at extraction time.",
+    "suffix_rules": {
+      "H": "Home University",
+      "O": "Other Than Home University",
+      "no_suffix": "State Level (TFWS, MI, PWD, DEF, EWS)"
+    }
+  },
+
+  "categories": {
+
+    "GOPENH": {
+      "caste_group": "Open",
+      "gender": "All",
+      "home_university_type": "Home University",
+      "seat_pool": "General"
+    },
+    "LOPENH": {
+      "caste_group": "Open",
+      "gender": "Female",
+      "home_university_type": "Home University",
+      "seat_pool": "General"
+    },
+    "GOPENO": {
+      "caste_group": "Open",
+      "gender": "All",
+      "home_university_type": "Other Than Home University",
+      "seat_pool": "General"
+    },
+    "LOPENO": {
+      "caste_group": "Open",
+      "gender": "Female",
+      "home_university_type": "Other Than Home University",
+      "seat_pool": "General"
+    },
+
+    "GOBCH": {
+      "caste_group": "OBC",
+      "gender": "All",
+      "home_university_type": "Home University",
+      "seat_pool": "Reserved"
+    },
+    "LOBCH": {
+      "caste_group": "OBC",
+      "gender": "Female",
+      "home_university_type": "Home University",
+      "seat_pool": "Reserved"
+    },
+    "GOBCO": {
+      "caste_group": "OBC",
+      "gender": "All",
+      "home_university_type": "Other Than Home University",
+      "seat_pool": "Reserved"
+    },
+    "LOBCO": {
+      "caste_group": "OBC",
+      "gender": "Female",
+      "home_university_type": "Other Than Home University",
+      "seat_pool": "Reserved"
+    },
+
+    "GSTH": {
+      "caste_group": "ST",
+      "gender": "All",
+      "home_university_type": "Home University",
+      "seat_pool": "Reserved"
+    },
+    "LSTH": {
+      "caste_group": "ST",
+      "gender": "Female",
+      "home_university_type": "Home University",
+      "seat_pool": "Reserved"
+    },
+    "GSTO": {
+      "caste_group": "ST",
+      "gender": "All",
+      "home_university_type": "Other Than Home University",
+      "seat_pool": "Reserved"
+    },
+    "LSTO": {
+      "caste_group": "ST",
+      "gender": "Female",
+      "home_university_type": "Other Than Home University",
+      "seat_pool": "Reserved"
+    },
+
+    "GSCH": {
+      "caste_group": "SC",
+      "gender": "All",
+      "home_university_type": "Home University",
+      "seat_pool": "Reserved"
+    },
+    "LSCH": {
+      "caste_group": "SC",
+      "gender": "Female",
+      "home_university_type": "Home University",
+      "seat_pool": "Reserved"
+    },
+    "GSCO": {
+      "caste_group": "SC",
+      "gender": "All",
+      "home_university_type": "Other Than Home University",
+      "seat_pool": "Reserved"
+    },
+    "LSCO": {
+      "caste_group": "SC",
+      "gender": "Female",
+      "home_university_type": "Other Than Home University",
+      "seat_pool": "Reserved"
+    },
+
+    "GVJH": {
+      "caste_group": "VJ/DT",
+      "gender": "All",
+      "home_university_type": "Home University",
+      "seat_pool": "Reserved"
+    },
+    "LVJH": {
+      "caste_group": "VJ/DT",
+      "gender": "Female",
+      "home_university_type": "Home University",
+      "seat_pool": "Reserved"
+    },
+    "GVJO": {
+      "caste_group": "VJ/DT",
+      "gender": "All",
+      "home_university_type": "Other Than Home University",
+      "seat_pool": "Reserved"
+    },
+    "LVJO": {
+      "caste_group": "VJ/DT",
+      "gender": "Female",
+      "home_university_type": "Other Than Home University",
+      "seat_pool": "Reserved"
+    },
+
+    "GNTAH": {
+      "caste_group": "NT-A",
+      "gender": "All",
+      "home_university_type": "Home University",
+      "seat_pool": "Reserved"
+    },
+    "LNTAH": {
+      "caste_group": "NT-A",
+      "gender": "Female",
+      "home_university_type": "Home University",
+      "seat_pool": "Reserved"
+    },
+    "GNTAO": {
+      "caste_group": "NT-A",
+      "gender": "All",
+      "home_university_type": "Other Than Home University",
+      "seat_pool": "Reserved"
+    },
+    "LNTAO": {
+      "caste_group": "NT-A",
+      "gender": "Female",
+      "home_university_type": "Other Than Home University",
+      "seat_pool": "Reserved"
+    },
+
+    "GNTBH": {
+      "caste_group": "NT-B",
+      "gender": "All",
+      "home_university_type": "Home University",
+      "seat_pool": "Reserved"
+    },
+    "LNTBH": {
+      "caste_group": "NT-B",
+      "gender": "Female",
+      "home_university_type": "Home University",
+      "seat_pool": "Reserved"
+    },
+    "GNTBO": {
+      "caste_group": "NT-B",
+      "gender": "All",
+      "home_university_type": "Other Than Home University",
+      "seat_pool": "Reserved"
+    },
+    "LNTBO": {
+      "caste_group": "NT-B",
+      "gender": "Female",
+      "home_university_type": "Other Than Home University",
+      "seat_pool": "Reserved"
+    },
+
+    "GNTCH": {
+      "caste_group": "NT-C",
+      "gender": "All",
+      "home_university_type": "Home University",
+      "seat_pool": "Reserved"
+    },
+    "LNTCH": {
+      "caste_group": "NT-C",
+      "gender": "Female",
+      "home_university_type": "Home University",
+      "seat_pool": "Reserved"
+    },
+    "GNTCO": {
+      "caste_group": "NT-C",
+      "gender": "All",
+      "home_university_type": "Other Than Home University",
+      "seat_pool": "Reserved"
+    },
+    "LNTCO": {
+      "caste_group": "NT-C",
+      "gender": "Female",
+      "home_university_type": "Other Than Home University",
+      "seat_pool": "Reserved"
+    },
+
+    "GNTDH": {
+      "caste_group": "NT-D",
+      "gender": "All",
+      "home_university_type": "Home University",
+      "seat_pool": "Reserved"
+    },
+    "LNTDH": {
+      "caste_group": "NT-D",
+      "gender": "Female",
+      "home_university_type": "Home University",
+      "seat_pool": "Reserved"
+    },
+    "GNTDO": {
+      "caste_group": "NT-D",
+      "gender": "All",
+      "home_university_type": "Other Than Home University",
+      "seat_pool": "Reserved"
+    },
+    "LNTDO": {
+      "caste_group": "NT-D",
+      "gender": "Female",
+      "home_university_type": "Other Than Home University",
+      "seat_pool": "Reserved"
+    },
+
+    "TFWS": {
+      "caste_group": "Open",
+      "gender": "All",
+      "home_university_type": "State Level",
+      "seat_pool": "Tuition Fee Waiver"
+    },
+    "MI": {
+      "caste_group": "Minority",
+      "gender": "All",
+      "home_university_type": "State Level",
+      "seat_pool": "Minority"
+    },
+    "PWD": {
+      "caste_group": "Open",
+      "gender": "All",
+      "home_university_type": "State Level",
+      "seat_pool": "Person With Disability"
+    },
+    "DEF": {
+      "caste_group": "Open",
+      "gender": "All",
+      "home_university_type": "State Level",
+      "seat_pool": "Defence"
+    },
+    "EWS": {
+      "caste_group": "EWS",
+      "gender": "All",
+      "home_university_type": "State Level",
+      "seat_pool": "Economically Weaker Section"
+    }
+  }
+}
