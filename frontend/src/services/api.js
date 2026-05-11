@@ -1,4 +1,96 @@
 // src/services/api.js
+
+// ─────────────────────────────────────────────────────────────────────────────
+// REAL BACKEND — GradMap FastAPI
+// ─────────────────────────────────────────────────────────────────────────────
+const BASE_URL = 'http://localhost:8000';
+
+/**
+ * Branch family display labels shown in the UI selector.
+ * These map to the engine's internal branch_family strings.
+ */
+export const BRANCH_FAMILIES = [
+  { value: null,               label: 'All Branches' },
+  { value: 'CS_FAMILY',        label: 'Computer & IT' },
+  { value: 'CIRCUITS_FAMILY',  label: 'Electronics & Electrical' },
+  { value: 'CORE_MECHANICAL',  label: 'Mechanical & Robotics' },
+  { value: 'CIVIL_FAMILY',     label: 'Civil & Structural' },
+  { value: 'CHEMICAL_FAMILY',  label: 'Chemical & Polymer' },
+];
+
+/**
+ * Maps the engine's bucket names to the UI's status strings.
+ * The existing table already styles Safe / Moderate / Reach.
+ */
+const BUCKET_TO_STATUS = {
+  SAFE:      'Safe',
+  TARGET:    'Moderate',
+  AMBITIOUS: 'Reach',
+};
+
+/**
+ * Call POST /recommend on the GradMap backend and return a flat
+ * array of recommendation objects compatible with the existing
+ * PredictorLayout table (same shape as the mock api.predict results).
+ *
+ * @param {object} params
+ * @param {number}        params.percentile
+ * @param {string}        params.category
+ * @param {string|null}   params.branchFamily   - e.g. "CS_FAMILY" or null
+ * @param {number[]|null} params.preferredTiers  - e.g. [1,2] or null
+ * @param {number}        params.topN            - default 20
+ */
+export async function fetchRecommendations({
+  percentile,
+  category,
+  branchFamily = null,
+  preferredTiers = null,
+  topN = 20,
+}) {
+  const payload = {
+    percentile,
+    category,
+    branch_family:   branchFamily  || undefined,
+    preferred_tiers: preferredTiers || undefined,
+    top_n:           topN,
+  };
+
+  const response = await fetch(`${BASE_URL}/recommend`, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.detail || `Server error ${response.status}`);
+  }
+
+  const data = await response.json(); // { SAFE: [...], TARGET: [...], AMBITIOUS: [...] }
+
+  // Flatten into a single array matching the existing table's field names.
+  // Order: SAFE first, then TARGET, then AMBITIOUS — preserving bucket intent.
+  const flat = [];
+  for (const bucket of ['SAFE', 'TARGET', 'AMBITIOUS']) {
+    for (const rec of data[bucket] ?? []) {
+      flat.push({
+        // original engine fields (all forwarded)
+        ...rec,
+        // aliases expected by existing table
+        cutoff:   rec.percentile_cutoff,
+        delta:    parseFloat((percentile - rec.percentile_cutoff).toFixed(2)),
+        status:   BUCKET_TO_STATUS[rec.recommendation_bucket] ?? rec.recommendation_bucket,
+        // district not returned by engine — derive from college name heuristic
+        district: rec.college_name?.split(',').slice(-1)[0]?.trim() ?? '—',
+      });
+    }
+  }
+  return flat;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MOCK LAYER (unchanged — used by simulator and trend chart)
+// ─────────────────────────────────────────────────────────────────────────────
 import categoryMap from '../assets/category_map.json';
 import branchMap from '../assets/branch_map.json';
 import collegeMap from '../assets/college_name_map.json';

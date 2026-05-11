@@ -1,46 +1,59 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TrendChartModal } from './TrendChartModal';
-import { api, CATEGORIES, BRANCHES } from '../../services/api';
+import { api, CATEGORIES, BRANCH_FAMILIES, fetchRecommendations } from '../../services/api';
 import { Link, useNavigate } from 'react-router-dom';
-import { GraduationCap, Loader2, ChevronRight, Target, TrendingUp, Activity, Search, Sparkles, Filter, Info, MapPin } from 'lucide-react';
+import { GraduationCap, Loader2, ChevronRight, Target, TrendingUp, Activity, Search, Sparkles, Filter, Info, MapPin, AlertCircle, Star } from 'lucide-react';
 import { cn } from '../../utils/cn';
 import { Button } from '../common/Button';
 import { Input } from '../common/Input';
 
-const DISTRICTS = ['Mumbai', 'Pune', 'Nashik', 'Nagpur', 'Aurangabad', 'Amravati', 'Satara', 'Jalgaon', 'Buldhana'];
+
 
 export const PredictorLayout = () => {
   const navigate = useNavigate();
   const [percentile, setPercentile] = useState('');
   const [category, setCategory] = useState('GOPENH');
-  const [district, setDistrict] = useState('');
-  const [branch, setBranch] = useState('');
-  const [results, setResults] = useState([]);
+  const [branchFamily, setBranchFamily] = useState(null);  // null = all branches
+  const [results, setResults] = useState({ SAFE: [], TARGET: [], AMBITIOUS: [] });
   const [isPredicting, setIsPredicting] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [error, setError] = useState(null);
   const [trendModal, setTrendModal] = useState({ isOpen: false });
 
   const handlePredict = async () => {
     if (!percentile) return;
     setIsPredicting(true);
     setHasSearched(true);
+    setError(null);
     try {
-      const res = await api.predict({
+      const grouped = await fetchRecommendations({
         percentile: parseFloat(percentile),
         category,
-        districts: district ? [district] : [],
-        branches: branch ? [branch] : [],
+        branchFamily: branchFamily || null,
+        preferredTiers: null,   // all tiers
+        topN: 20,
       });
-      setResults(res);
+      // fetchRecommendations returns a flat array with .status already mapped
+      // Re-group into buckets for the stat cards
+      setResults({
+        SAFE:      grouped.filter(r => r.status === 'Safe'),
+        TARGET:    grouped.filter(r => r.status === 'Moderate'),
+        AMBITIOUS: grouped.filter(r => r.status === 'Reach'),
+        all:       grouped,
+      });
+    } catch (err) {
+      setError(err.message || 'Failed to fetch recommendations. Is the backend running?');
+      setResults({ SAFE: [], TARGET: [], AMBITIOUS: [], all: [] });
     } finally {
       setIsPredicting(false);
     }
   };
 
-  const safe = results.filter(r => r.status === 'Safe');
-  const moderate = results.filter(r => r.status === 'Moderate');
-  const reach = results.filter(r => r.status === 'Reach');
+  const allResults = results.all ?? [];
+  const safe      = results.SAFE      ?? [];
+  const moderate  = results.TARGET    ?? [];
+  const reach     = results.AMBITIOUS ?? [];
 
   return (
     <div className="min-h-screen bg-background bg-mesh relative overflow-hidden selection:bg-emerald-500/30">
@@ -128,33 +141,19 @@ export const PredictorLayout = () => {
               </div>
             </div>
 
-            {/* District Select */}
-            <div>
-              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block mb-3 ml-1">Target District</label>
-              <div className="relative">
-                <select
-                  value={district}
-                  onChange={e => setDistrict(e.target.value)}
-                  className="w-full h-14 px-5 rounded-xl border border-white/10 bg-background/40 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500 appearance-none transition-all cursor-pointer hover:border-emerald-500/50"
-                >
-                  <option value="">Maharashtra (All)</option>
-                  {DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
-                </select>
-                <MapPin className="absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-              </div>
-            </div>
 
-            {/* Branch Select */}
+            {/* Branch Family Select */}
             <div>
-              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block mb-3 ml-1">Study Branch</label>
+              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block mb-3 ml-1">Branch Family</label>
               <div className="relative">
                 <select
-                  value={branch}
-                  onChange={e => setBranch(e.target.value)}
+                  value={branchFamily ?? ''}
+                  onChange={e => setBranchFamily(e.target.value || null)}
                   className="w-full h-14 px-5 rounded-xl border border-white/10 bg-background/40 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500 appearance-none transition-all cursor-pointer hover:border-emerald-500/50"
                 >
-                  <option value="">Any Engineering Branch</option>
-                  {BRANCHES.map(b => <option key={b} value={b}>{b}</option>)}
+                  {BRANCH_FAMILIES.map(bf => (
+                    <option key={bf.value ?? 'all'} value={bf.value ?? ''}>{bf.label}</option>
+                  ))}
                 </select>
                 <ChevronRight className="absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground rotate-90 pointer-events-none" />
               </div>
@@ -190,8 +189,23 @@ export const PredictorLayout = () => {
               exit={{ opacity: 0, y: -20 }}
               className="space-y-10"
             >
+              {/* Error Banner */}
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-start gap-3 px-6 py-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400"
+                >
+                  <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-black text-sm">Recommendation engine error</p>
+                    <p className="text-xs font-medium mt-0.5 opacity-80">{error}</p>
+                  </div>
+                </motion.div>
+              )}
+
               {/* Stat Overview */}
-              {results.length > 0 && (
+              {allResults.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {[
                     { label: 'Safe', count: safe.length, color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', icon: Target },
@@ -224,11 +238,11 @@ export const PredictorLayout = () => {
                     </div>
                     <div>
                       <h3 className="font-black text-sm">Prediction Results</h3>
-                      <p className="text-[10px] text-muted-foreground uppercase font-black tracking-tighter">Analysis based on {results.length} institutional mappings</p>
+                      <p className="text-[10px] text-muted-foreground uppercase font-black tracking-tighter">Analysis based on {allResults.length} institutional mappings</p>
                     </div>
                   </div>
                   <div className="px-4 py-1.5 rounded-full bg-emerald-600/20 text-emerald-400 text-[10px] font-black uppercase tracking-widest border border-emerald-600/30">
-                    2024 Context
+                    2022-2025 Data
                   </div>
                 </div>
 
@@ -237,45 +251,52 @@ export const PredictorLayout = () => {
                     <thead>
                       <tr className="bg-white/3 border-b border-white/5">
                         <th className="text-left px-8 py-5 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Institution & Course</th>
-                        <th className="text-left px-6 py-5 text-[10px] font-black text-muted-foreground uppercase tracking-widest hidden md:table-cell">Region</th>
-                        <th className="text-left px-6 py-5 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Cutoff Delta</th>
-                        <th className="text-left px-6 py-5 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Status</th>
+                        <th className="text-left px-6 py-5 text-[10px] font-black text-muted-foreground uppercase tracking-widest hidden md:table-cell">Tier</th>
+                        <th className="text-left px-6 py-5 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Cutoff / Gap</th>
+                        <th className="text-left px-6 py-5 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Bucket</th>
                         <th className="text-right px-8 py-5 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Insight</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
-                      {results.map((item, idx) => (
+                      {allResults.map((item, idx) => (
                         <motion.tr 
                           initial={{ opacity: 0, x: -10 }}
                           animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: idx * 0.05 }}
-                          key={idx} 
+                          transition={{ delay: idx * 0.04 }}
+                          key={item.row_id ?? idx} 
                           className="hover:bg-white/5 transition-colors group cursor-pointer"
-                          onClick={() => navigate(`/colleges/${item.college_code}`)}
                         >
                           <td className="px-8 py-6">
                             <div className="font-black text-foreground group-hover:text-emerald-400 transition-colors">{item.college_name}</div>
                             <div className="text-xs text-muted-foreground font-medium mt-1 uppercase tracking-tight">{item.branch_name}</div>
+                            <div className="text-[10px] text-muted-foreground/60 font-medium mt-0.5">Round {item.round} · {item.year} · {item.category}</div>
                           </td>
                           <td className="px-6 py-6 hidden md:table-cell">
-                            <div className="flex items-center gap-2 text-muted-foreground text-xs font-bold">
-                              <MapPin className="w-3 h-3" /> {item.district}
+                            <div className="flex items-center gap-1">
+                              {[1, 2, 3].map(t => (
+                                <Star
+                                  key={t}
+                                  className={cn('w-3.5 h-3.5', t <= item.institute_tier ? 'text-emerald-400' : 'text-white/10')}
+                                  fill={t <= (4 - item.institute_tier) ? 'currentColor' : 'none'}
+                                />
+                              ))}
+                              <span className="text-[10px] text-muted-foreground font-bold ml-1">T{item.institute_tier}</span>
                             </div>
                           </td>
                           <td className="px-6 py-6">
-                            <div className="font-black text-lg">{item.cutoff}</div>
-                            <div className={cn("text-[10px] font-black uppercase tracking-tighter mt-1",
-                              item.status === 'Safe' ? "text-emerald-400" : item.status === 'Moderate' ? "text-amber-400" : "text-rose-400"
+                            <div className="font-black text-lg">{item.percentile_cutoff?.toFixed(2)}</div>
+                            <div className={cn('text-[10px] font-black uppercase tracking-tighter mt-1',
+                              item.status === 'Safe' ? 'text-emerald-400' : item.status === 'Moderate' ? 'text-amber-400' : 'text-rose-400'
                             )}>
-                              {item.delta > 0 ? 'Surplus ' : 'Shortfall '}{Math.abs(item.delta)}
+                              {item.delta > 0 ? '+' : ''}{item.delta?.toFixed(2)} gap
                             </div>
                           </td>
                           <td className="px-6 py-6">
                             <span className={cn(
-                              "px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border",
-                              item.status === 'Safe' ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" :
-                                item.status === 'Moderate' ? "bg-amber-500/10 border-amber-500/20 text-amber-400" :
-                                  "bg-rose-500/10 border-rose-500/20 text-rose-400"
+                              'px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border',
+                              item.status === 'Safe'     ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
+                              item.status === 'Moderate' ? 'bg-amber-500/10  border-amber-500/20  text-amber-400'   :
+                                                           'bg-rose-500/10   border-rose-500/20   text-rose-400'
                             )}>
                               {item.status}
                             </span>
@@ -286,7 +307,7 @@ export const PredictorLayout = () => {
                               size="sm"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setTrendModal({ isOpen: true, instituteCode: item.college_code, branchName: item.branch_name, category: item.category });
+                                setTrendModal({ isOpen: true, instituteCode: item.institute_code, branchName: item.branch_name, category: item.category });
                               }}
                               className="text-emerald-400 hover:bg-emerald-400/10 group/btn"
                             >
