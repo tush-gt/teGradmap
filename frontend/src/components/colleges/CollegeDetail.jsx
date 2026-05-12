@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../../services/api';
@@ -76,11 +76,6 @@ export const CollegeDetail = () => {
   const [loading, setLoading] = useState(true);
   const [activeChart, setActiveChart] = useState('Trends');
 
-  // Chart stability hooks
-  const chartContainerRef = useRef(null);
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
-  const [isStable, setIsStable] = useState(false);
-
   useEffect(() => {
     api.getColleges().then(data => {
       const found = data.find(c => c.code === code);
@@ -93,43 +88,23 @@ export const CollegeDetail = () => {
     setLoading(true);
     api.getTrends({ institute_code: code, branch_name: selectedBranch, category: selectedCategory })
       .then(data => {
-        setTrendData(data.trends || []);
+        setTrendData(data);
         setLoading(false);
       });
   }, [code, selectedBranch, selectedCategory]);
 
   useEffect(() => {
     if (!code) return;
-    setLoading(true);
-    api.getCollegeAnalytics({ institute_code: code, category: selectedCategory })
-      .then(data => {
-        if (data && !data.error) {
-          setBranchCompareData(data.branch_comparison.map(b => ({
-            branch: b.branch_name.replace('Engineering', '').replace('and Telecommunication', '').replace('Computer Engineering', 'CS').replace('Information Technology', 'IT').replace('Mechanical Engineering', 'Mech').replace('Civil Engineering', 'Civil').trim(),
-            cutoff: b.latest_cutoff || b.avg_cutoff
-          })));
-        }
-        setLoading(false);
-      });
+    Promise.all(
+      BRANCHES.map(b =>
+        api.getTrends({ institute_code: code, branch_name: b, category: selectedCategory })
+          .then(data => {
+            const yr2024 = data.find(d => d.year === '2024');
+            return { branch: b.replace('Electronics and Telecommunication', 'ENTC').replace('Computer Engineering', 'CS').replace('Information Technology', 'IT').replace('Mechanical Engineering', 'Mech').replace('Civil Engineering', 'Civil'), cutoff: yr2024?.round1 || 0 };
+          })
+      )
+    ).then(setBranchCompareData);
   }, [code, selectedCategory]);
-
-  // Handle ResizeObserver
-  useEffect(() => {
-    if (!chartContainerRef.current) return;
-    
-    const observer = new ResizeObserver((entries) => {
-      if (entries[0]) {
-        const { width, height } = entries[0].contentRect;
-        if (width > 0 && height > 0) {
-          setDimensions({ width, height });
-          setIsStable(true);
-        }
-      }
-    });
-
-    observer.observe(chartContainerRef.current);
-    return () => observer.disconnect();
-  }, [activeChart]);
 
   const details = mockCollegeDetails[code] || defaultDetails;
 
@@ -165,7 +140,7 @@ export const CollegeDetail = () => {
         animate={{ y: 0, opacity: 1 }}
         className="border-b border-white/5 bg-background/40 backdrop-blur-2xl sticky top-0 z-50 px-6 py-4"
       >
-        <div className="max-w-[95%] mx-auto flex justify-between items-center">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
           <Link to="/" className="flex items-center gap-3 group">
             <div className="w-9 h-9 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform">
               <GraduationCap className="text-white w-5 h-5" />
@@ -180,7 +155,7 @@ export const CollegeDetail = () => {
         </div>
       </motion.nav>
 
-      <div className="max-w-[95%] mx-auto px-6 pt-12 pb-24 relative z-10">
+      <div className="max-w-7xl mx-auto px-6 pt-12 pb-24 relative z-10">
 
         {/* Hero Section */}
         {college && (
@@ -342,7 +317,7 @@ export const CollegeDetail = () => {
             </div>
           </div>
 
-          <div ref={chartContainerRef} className="h-[400px] w-full">
+          <div className="h-[400px] w-full">
             {loading ? (
               <div className="h-full flex flex-col items-center justify-center gap-6">
                 <Loader2 className="w-12 h-12 animate-spin text-emerald-500" />
@@ -351,118 +326,115 @@ export const CollegeDetail = () => {
             ) : (
               <AnimatePresence mode="wait">
                 <motion.div
-                  key={activeChart + isStable + dimensions.width}
+                  key={activeChart}
                   initial={{ opacity: 0, scale: 0.98 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.98 }}
                   transition={{ duration: 0.3 }}
                   className="h-full"
                 >
-                  {dimensions.width > 0 && isStable ? (
-                    <>
-                      {activeChart === 'Trends' && (
-                        <BarChart width={dimensions.width} height={dimensions.height} data={trendData} margin={{ top: 20, right: 0, left: -20, bottom: 0 }}>
-                          <defs>
-                            <linearGradient id="colorR1" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor={ROUND_COLORS.round1} stopOpacity={0.8}/>
-                              <stop offset="95%" stopColor={ROUND_COLORS.round1} stopOpacity={0.1}/>
-                            </linearGradient>
-                          </defs>
-                          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
-                          <XAxis 
-                            dataKey="year" 
-                            axisLine={false} 
-                            tickLine={false} 
-                            tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11, fontWeight: 900 }} 
-                          />
-                          <YAxis 
-                            domain={['dataMin - 1', 'dataMax + 0.5']} 
-                            axisLine={false} 
-                            tickLine={false} 
-                            tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11, fontWeight: 900 }} 
-                          />
-                          <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
-                          <Legend iconType="circle" wrapperStyle={{ paddingTop: 30, fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 1 }} />
-                          <Bar dataKey="round1" name="Round 01" fill="url(#colorR1)" radius={[10, 10, 0, 0]} />
-                          <Bar dataKey="round2" name="Round 02" fill={ROUND_COLORS.round2} radius={[10, 10, 0, 0]} opacity={0.4} />
-                          <Bar dataKey="round3" name="Round 03" fill={ROUND_COLORS.round3} radius={[10, 10, 0, 0]} opacity={0.2} />
-                        </BarChart>
-                      )}
+                  {activeChart === 'Trends' && (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={trendData} margin={{ top: 20, right: 0, left: -20, bottom: 0 }}>
+                        <defs>
+                          <linearGradient id="colorR1" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor={ROUND_COLORS.round1} stopOpacity={0.8}/>
+                            <stop offset="95%" stopColor={ROUND_COLORS.round1} stopOpacity={0.1}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
+                        <XAxis 
+                          dataKey="year" 
+                          axisLine={false} 
+                          tickLine={false} 
+                          tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11, fontWeight: 900 }} 
+                        />
+                        <YAxis 
+                          domain={['dataMin - 1', 'dataMax + 0.5']} 
+                          axisLine={false} 
+                          tickLine={false} 
+                          tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11, fontWeight: 900 }} 
+                        />
+                        <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
+                        <Legend iconType="circle" wrapperStyle={{ paddingTop: 30, fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 1 }} />
+                        <Bar dataKey="round1" name="Round 01" fill="url(#colorR1)" radius={[10, 10, 0, 0]} />
+                        <Bar dataKey="round2" name="Round 02" fill={ROUND_COLORS.round2} radius={[10, 10, 0, 0]} opacity={0.4} />
+                        <Bar dataKey="round3" name="Round 03" fill={ROUND_COLORS.round3} radius={[10, 10, 0, 0]} opacity={0.2} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
 
-                      {activeChart === 'Distribution' && (
-                        <div className="flex flex-col md:flex-row items-center h-full gap-12">
-                          <div className="flex-1 w-full h-full">
-                            <PieChart width={dimensions.width * 0.6} height={dimensions.height}>
-                              <Pie
-                                data={pieData}
-                                cx="50%"
-                                cy="50%"
-                                outerRadius="90%"
-                                innerRadius="65%"
-                                paddingAngle={8}
-                                dataKey="value"
-                                stroke="transparent"
-                              >
-                                {pieData.map((_, i) => (
-                                  <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                                ))}
-                              </Pie>
-                              <Tooltip content={<CustomTooltip />} />
-                            </PieChart>
+                  {activeChart === 'Distribution' && (
+                    <div className="flex flex-col md:flex-row items-center h-full gap-12">
+                      <div className="flex-1 w-full h-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={pieData}
+                              cx="50%"
+                              cy="50%"
+                              outerRadius="90%"
+                              innerRadius="65%"
+                              paddingAngle={8}
+                              dataKey="value"
+                              stroke="transparent"
+                            >
+                              {pieData.map((_, i) => (
+                                <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                              ))}
+                            </Pie>
+                            <Tooltip content={<CustomTooltip />} />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+                      <div className="flex flex-col gap-6 min-w-[240px] glass-morphism p-8 rounded-3xl border-white/5">
+                        <h4 className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Cyclical Analysis</h4>
+                        {pieData.map((d, i) => (
+                          <div key={i} className="flex items-center justify-between group">
+                            <div className="flex items-center gap-3">
+                              <span className="w-2.5 h-2.5 rounded-full" style={{ background: COLORS[i % COLORS.length] }} />
+                              <span className="text-xs font-black text-muted-foreground uppercase">{d.name} Peak</span>
+                            </div>
+                            <span className="font-black text-sm">{d.value?.toFixed(2)}</span>
                           </div>
-                          <div className="flex flex-col gap-6 min-w-[240px] glass-morphism p-8 rounded-3xl border-white/5">
-                            <h4 className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Cyclical Analysis</h4>
-                            {pieData.map((d, i) => (
-                              <div key={i} className="flex items-center justify-between group">
-                                <div className="flex items-center gap-3">
-                                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: COLORS[i % COLORS.length] }} />
-                                  <span className="text-xs font-black text-muted-foreground uppercase">{d.name} Peak</span>
-                                </div>
-                                <span className="font-black text-sm">{d.value?.toFixed(2)}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {activeChart === 'Comparison' && (
-                        <AreaChart width={dimensions.width} height={dimensions.height} data={branchCompareData} margin={{ top: 20, right: 0, left: -20, bottom: 0 }}>
-                          <defs>
-                            <linearGradient id="colorCutoff" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor={COLORS[0]} stopOpacity={0.3}/>
-                              <stop offset="95%" stopColor={COLORS[0]} stopOpacity={0}/>
-                            </linearGradient>
-                          </defs>
-                          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
-                          <XAxis 
-                            dataKey="branch" 
-                            axisLine={false} 
-                            tickLine={false} 
-                            tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10, fontWeight: 900 }} 
-                          />
-                          <YAxis 
-                            domain={['dataMin - 5', 'dataMax + 1']} 
-                            axisLine={false} 
-                            tickLine={false} 
-                            tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10, fontWeight: 900 }} 
-                          />
-                          <Tooltip content={<CustomTooltip />} />
-                          <Area 
-                            type="monotone" 
-                            dataKey="cutoff" 
-                            name="2024 Threshold" 
-                            stroke={COLORS[0]} 
-                            strokeWidth={4} 
-                            fill="url(#colorCutoff)" 
-                          />
-                        </AreaChart>
-                      )}
-                    </>
-                  ) : (
-                    <div className="h-full flex flex-col items-center justify-center gap-4">
-                      <Loader2 className="w-8 h-8 animate-spin text-emerald-500/30" />
-                      <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">Calibrating Analytics...</span>
+                        ))}
+                      </div>
                     </div>
+                  )}
+
+                  {activeChart === 'Comparison' && (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={branchCompareData} margin={{ top: 20, right: 0, left: -20, bottom: 0 }}>
+                        <defs>
+                          <linearGradient id="colorCutoff" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor={COLORS[0]} stopOpacity={0.3}/>
+                            <stop offset="95%" stopColor={COLORS[0]} stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
+                        <XAxis 
+                          dataKey="branch" 
+                          axisLine={false} 
+                          tickLine={false} 
+                          tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10, fontWeight: 900 }} 
+                        />
+                        <YAxis 
+                          domain={['dataMin - 5', 'dataMax + 1']} 
+                          axisLine={false} 
+                          tickLine={false} 
+                          tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10, fontWeight: 900 }} 
+                        />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Area 
+                          type="monotone" 
+                          dataKey="cutoff" 
+                          name="2024 Threshold" 
+                          stroke={COLORS[0]} 
+                          strokeWidth={4} 
+                          fill="url(#colorCutoff)" 
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
                   )}
                 </motion.div>
               </AnimatePresence>
