@@ -57,6 +57,13 @@ from .ranking import (
     split_by_bucket,
     format_recommendations,
 )
+from models.utils.model_loader import predict_probability
+from models.utils.probability_ranker import (
+    attach_probability_metadata,
+    rank_recommendations,
+    diversify_recommendations,
+    split_into_buckets,
+)
 
 log = logging.getLogger("gradmap.engine")
 
@@ -99,7 +106,13 @@ def recommend(
     df = filter_by_category(df, params["user_category"])
     df = filter_by_branch_family(df, params["preferred_branch_family"])
     df = filter_by_tier(df, params["preferred_tier"])
-    df = filter_by_percentile_window(df, params["user_percentile"])
+    
+    is_catalog = params.get("top_n", 20) > 200
+    if is_catalog:
+        # Show all branches for the Option Form UI regardless of user percentile
+        df = filter_by_percentile_window(df, params["user_percentile"], lower_margin=100.0)
+    else:
+        df = filter_by_percentile_window(df, params["user_percentile"])
 
     if df.empty:
         log.warning("No candidates after filtering. Returning empty results.")
@@ -112,21 +125,36 @@ def recommend(
     # 5. Apply scoring (year recency)
     df = apply_year_recency(df)
 
-    # 6. Deduplicate for diversity
+    # 6. Deduplicate (Keep only latest/highest scoring row per branch per college)
+    from .ranking import deduplicate_recommendations
     df = deduplicate_recommendations(df)
 
-    # 7. Rank within buckets
-    df = rank_within_buckets(df)
+    # 7. ML Inference Setup
+    # The ML pipeline requires 'user_percentile' injected to predict admission chance.
+    df["user_percentile"] = params["user_percentile"]
+    
+    # 7. Run Inference & Attach Metadata
+    probabilities = predict_probability(df)
+    df["probability"] = probabilities
+    df["ml_probability"] = probabilities
+    df = attach_probability_metadata(df)
 
-    # 8. Split into groups and fill allocations
-    groups = split_by_bucket(df, params["top_n"])
+    # 8. Rank and Diversify using Intelligence Engine
+    df = rank_recommendations(df)
+    if not is_catalog:
+        df = diversify_recommendations(df, max_per_college=2)
 
-    # 9. Format for frontend
-    result = format_recommendations(groups)
+    # 9. Format for Frontend
+    # Filter only the columns required by schemas.py to prevent payload bloat
+    output_cols = [c for c in config.RECOMMENDATION_COLUMNS if c in df.columns]
+    df = df[output_cols]
+
+    # 10. Final Bucket Split
+    result = split_into_buckets(df)
 
     total = sum(len(v) for v in result.values())
     log.info("─" * 60)
-    log.info("Total recommendations returned: %d", total)
+    log.info("Total ML-backed recommendations returned: %d", total)
     log.info("═" * 60)
 
     return result

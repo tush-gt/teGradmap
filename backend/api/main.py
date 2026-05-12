@@ -48,6 +48,7 @@ log = logging.getLogger("gradmap.api")
 try:
     from scripts.modeling.recommendation_engine import recommend
     from scripts.modeling.utils import load_dataset
+    from models.utils.model_loader import load_model
 except ImportError as e:
     log.critical("Failed to import recommendation engine: %s", e)
     log.critical("Make sure you are running from the backend/ directory.")
@@ -133,6 +134,12 @@ async def lifespan(app: FastAPI):
         log.critical("Dataset not found: %s", e)
         log.critical("Run the feature engineering pipeline first.")
         raise RuntimeError(str(e)) from e
+
+    # Load ML Model into memory globally
+    try:
+        load_model()
+    except Exception as e:
+        log.warning(f"ML model failed to load. Pipeline requires model for inference. Error: {e}")
 
     yield  # Application runs here
 
@@ -278,27 +285,35 @@ def get_trends(institute_code: str, branch_name: str, category: str):
     log.info("branch=%s", branch_name)
     log.info("category=%s", category)
 
-    # 1. Strict Institute Match
-    inst_match = (_dataset_cache["institute_code"].astype(str) == str(institute_code))
+    # 1. Advanced Institute Match (Handles code changes like 6006 -> 16006)
+    inst_code_str = str(institute_code)
+    # If it's a 5-digit code starting with 1 (common for autonomous/university transitions), extract base
+    base_code = inst_code_str[1:] if (len(inst_code_str) == 5 and inst_code_str.startswith("1")) else inst_code_str
+    
+    inst_match = (
+        (_dataset_cache["institute_code"].astype(str) == inst_code_str) | 
+        (_dataset_cache["institute_code"].astype(str) == base_code)
+    )
 
     # 2. Normalized Branch Match
     branch_norm = branch_name.lower().replace("engineering", "").replace("technology", "").strip()
-    if branch_norm in ["computer", "computer science", "cs", "cse", "ce"]:
+    if any(kw in branch_norm for kw in ["computer", "cs", "cse", "ce"]):
         branch_match = _dataset_cache["branch_name"].str.contains("computer", na=False, case=False)
-    elif branch_norm in ["information", "it"]:
+    elif any(kw in branch_norm for kw in ["information", "it"]):
         branch_match = _dataset_cache["branch_name"].str.contains("information technology", na=False, case=False)
-    elif branch_norm in ["electronics and telecommunication", "extc", "entc"]:
+    elif any(kw in branch_norm for kw in ["electronics", "extc", "entc", "telecommunication"]):
         branch_match = _dataset_cache["branch_name"].str.contains("telecommunication", na=False, case=False)
     else:
         branch_match = _dataset_cache["branch_name"].str.contains(branch_norm, na=False, case=False)
 
     # 3. Category Match (Starts with base family)
-    # E.g. GOPENH, GOPENS -> GOPEN
     cat_base = category
-    if len(category) > 4 and category.startswith(("GOPEN", "LOPEN", "GOBC", "LOBC", "GSC", "LSC", "GST", "LST", "GNT", "LNT", "GVJ", "LVJ")):
-        cat_base = category[:-1] # Remove the trailing H, O, or S
-    elif category in ["TFWS", "EWS", "DEF1", "DEF2", "DEF3", "ORPHAN"]:
-        cat_base = category
+    if len(category) >= 5:
+        families = ("GOPEN", "LOPEN", "GOBC", "LOBC", "GSC", "LSC", "GST", "LST", "GNT", "LNT", "GVJ", "LVJ")
+        for fam in families:
+            if category.startswith(fam):
+                cat_base = fam
+                break
     
     cat_match = _dataset_cache["category"].astype(str).str.startswith(cat_base, na=False)
 
@@ -327,6 +342,9 @@ def get_trends(institute_code: str, branch_name: str, category: str):
                 "round1": float(year_data[year_data["round"] == 1]["percentile_cutoff"].iloc[0]) if not year_data[year_data["round"] == 1].empty else None,
                 "round2": float(year_data[year_data["round"] == 2]["percentile_cutoff"].iloc[0]) if not year_data[year_data["round"] == 2].empty else None,
                 "round3": float(year_data[year_data["round"] == 3]["percentile_cutoff"].iloc[0]) if not year_data[year_data["round"] == 3].empty else None,
+                "round1_rank": int(year_data[year_data["round"] == 1]["rank_cutoff"].iloc[0]) if not year_data[year_data["round"] == 1].empty else None,
+                "round2_rank": int(year_data[year_data["round"] == 2]["rank_cutoff"].iloc[0]) if not year_data[year_data["round"] == 2].empty else None,
+                "round3_rank": int(year_data[year_data["round"] == 3]["rank_cutoff"].iloc[0]) if not year_data[year_data["round"] == 3].empty else None,
             })
             
         return {

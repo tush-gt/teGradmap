@@ -63,7 +63,8 @@ export const S4_OptionForm = () => {
   useEffect(() => {
     setIsLoading(true);
     // Fetch real available colleges for this category using a high limit
-    api.predict({ percentile: 100, category: profile.category, topN: 100 }).then(data => {
+    // We pass topN: 1000 so the backend bypasses diversification and percentile hiding (is_catalog mode).
+    api.predict({ percentile: 100, category: profile.category, topN: 1000, preferredTiers: [1, 2, 3] }).then(data => {
       setAvailableOptions(data);
       setIsLoading(false);
     });
@@ -101,7 +102,28 @@ export const S4_OptionForm = () => {
     setCurrentStep(5);
   };
 
-  const filteredAvailable = availableOptions
+  const getBranchPriority = (branchName) => {
+    const b = branchName.toLowerCase();
+    if (b.includes('computer') || b.includes('information') || b.includes('artificial') || b.includes('data') || b.includes('software')) return 1;
+    if (b.includes('electronic') || b.includes('telecommunication') || b.includes('extc')) return 2;
+    if (b.includes('mechanical') || b.includes('mech')) return 3;
+    return 4; // Others
+  };
+
+  // Robust regional filters to catch elite colleges like SPIT, VJTI, COEP
+  const isPune = (name) => {
+    const n = name.toLowerCase();
+    return n.includes('pune') || n.includes('pimpri') || n.includes('chinchwad') || n.includes('coep');
+  };
+
+  const isMumbai = (name) => {
+    const n = name.toLowerCase();
+    return n.includes('mumbai') || n.includes('navi') || n.includes('thane') || n.includes('bandra') || 
+           n.includes('matunga') || n.includes('sardar patel') || n.includes('vjti') || n.includes('spit') || 
+           n.includes('terna') || n.includes('don bosco');
+  };
+
+  const baseFiltered = availableOptions
     .filter(opt => 
       opt.college_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       opt.branch_name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -112,17 +134,28 @@ export const S4_OptionForm = () => {
       const tierB = b.institute_tier || 3;
       if (tierA !== tierB) return tierA - tierB;
       
-      // 2. Famous Branch Priority
-      const famousKeywords = ['computer', 'information technology', 'electronics and telecommunication', 'extc', 'software', 'artificial'];
-      const aIsFamous = famousKeywords.some(kw => a.branch_name.toLowerCase().includes(kw));
-      const bIsFamous = famousKeywords.some(kw => b.branch_name.toLowerCase().includes(kw));
-      
-      if (aIsFamous && !bIsFamous) return -1;
-      if (!aIsFamous && bIsFamous) return 1;
+      // 2. Branch Priority
+      const pA = getBranchPriority(a.branch_name);
+      const pB = getBranchPriority(b.branch_name);
+      if (pA !== pB) return pA - pB;
 
       // 3. High cutoff first
-      return (b.cutoff || 0) - (a.cutoff || 0);
+      return (b.percentile_cutoff || b.cutoff || 0) - (a.percentile_cutoff || a.cutoff || 0);
     });
+
+  const puneColleges = baseFiltered.filter(opt => isPune(opt.college_name)).slice(0, 100);
+  const mumbaiColleges = baseFiltered.filter(opt => isMumbai(opt.college_name)).slice(0, 100);
+
+  // Combine and interleave them based on the same powerful sorting
+  const filteredAvailable = [...puneColleges, ...mumbaiColleges].sort((a, b) => {
+    const tierA = a.institute_tier || 3;
+    const tierB = b.institute_tier || 3;
+    if (tierA !== tierB) return tierA - tierB;
+    const pA = getBranchPriority(a.branch_name);
+    const pB = getBranchPriority(b.branch_name);
+    if (pA !== pB) return pA - pB;
+    return (b.percentile_cutoff || b.cutoff || 0) - (a.percentile_cutoff || a.cutoff || 0);
+  }).slice(0, 200);
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">

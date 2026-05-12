@@ -58,7 +58,7 @@ class RecommendRequest(BaseModel):
     top_n: int = Field(
         default=20,
         ge=1,
-        le=100,
+        le=1000,
         description="Maximum total recommendations to return (split across buckets).",
         examples=[20],
     )
@@ -119,6 +119,12 @@ class RecommendationItem(BaseModel):
     institute_code: Optional[int] = None
     college_code: Optional[str] = None
 
+    # ML Probability Fields
+    ml_probability: Optional[float] = None
+    probability_bucket: Optional[str] = None
+    confidence_label: Optional[str] = None
+    probability_percent: Optional[str] = None
+
 
 class RecommendResponse(BaseModel):
     """
@@ -150,7 +156,7 @@ class UserProfile(BaseModel):
 
 class OptionItem(BaseModel):
     """A single choice in the user's option form."""
-    college_code: Optional[str] = None
+    college_code: Optional[str | int] = None
     college_name: str
     branch_name: str
 
@@ -193,6 +199,9 @@ class YearlyTrendItem(BaseModel):
     round1: Optional[float] = None
     round2: Optional[float] = None
     round3: Optional[float] = None
+    round1_rank: Optional[int] = None
+    round2_rank: Optional[int] = None
+    round3_rank: Optional[int] = None
 
 class TrendSummary(BaseModel):
     """Overall analysis of the historical data."""

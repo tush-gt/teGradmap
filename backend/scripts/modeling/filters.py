@@ -26,16 +26,24 @@ def filter_by_category(
     user_category: str,
 ) -> pd.DataFrame:
     """
-    Keep only rows whose `category` column contains the user's
-    category code (e.g. GOPEN matches GOPENS, GOPENH, GOPENO).
+    Keep only rows whose `category` column matches the user's 
+    category family (e.g. GOPENS matches GOPENS, GOPENH, GOPENO).
 
-    This uses substring matching because the raw category codes
-    encode suffix information (S = State, H = Home, O = Other).
+    This uses a family-based root extraction to ensure students see 
+    all relevant seats they are eligible for.
     """
-    mask = df["category"].str.contains(user_category, na=False, case=False)
+    # Extract root family (e.g., GOPEN, GOBC, etc.)
+    cat_root = user_category
+    families = ("GOPEN", "LOPEN", "GOBC", "LOBC", "GSC", "LSC", "GST", "LST", "GNT", "LNT", "GVJ", "LVJ")
+    for fam in families:
+        if user_category.startswith(fam):
+            cat_root = fam
+            break
+
+    mask = df["category"].str.contains(cat_root, na=False, case=False)
     result = df[mask].copy()
-    log.info("Category filter (%s): %d → %d rows",
-             user_category, len(df), len(result))
+    log.info("Category filter (root: %s): %d → %d rows",
+             cat_root, len(df), len(result))
     return result
 
 

@@ -102,6 +102,10 @@ RECOMMENDATION_COLUMNS: list[str] = [
     "year",
     "choice_code",
     "institute_code",
+    "ml_probability",
+    "probability_bucket",
+    "confidence_label",
+    "probability_percent",
 ]
 
 # ──────────────────────────────────────────────────────────────────────

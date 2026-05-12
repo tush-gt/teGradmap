@@ -37,16 +37,28 @@ const CustomTooltip = ({ active, payload, label }) => {
     return (
       <div className="glass-morphism rounded-2xl px-5 py-4 shadow-2xl border border-white/10 backdrop-blur-2xl">
         <p className="font-black text-[10px] uppercase tracking-widest text-emerald-400 mb-3">{label} Analysis</p>
-        <div className="space-y-2">
-          {payload.map((entry, i) => (
-            <div key={i} className="flex items-center justify-between gap-6">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full" style={{ background: entry.color }} />
-                <span className="text-[11px] font-bold text-muted-foreground">{entry.name}:</span>
+        <div className="space-y-3">
+          {payload.map((entry, i) => {
+            // Find the rank equivalent in the original data object
+            const dataObj = entry.payload;
+            const rankKey = `${entry.dataKey}_rank`;
+            const rankValue = dataObj[rankKey];
+
+            return (
+              <div key={i} className="flex flex-col gap-1 border-l-2 pl-3" style={{ borderColor: entry.color }}>
+                <div className="flex items-center justify-between gap-6">
+                  <span className="text-[10px] font-black text-muted-foreground uppercase">{entry.name}:</span>
+                  <span className="font-black text-sm text-foreground">{entry.value?.toFixed(2)}%</span>
+                </div>
+                {rankValue && (
+                  <div className="flex items-center justify-between gap-6">
+                    <span className="text-[9px] font-bold text-muted-foreground/60 uppercase italic">Merit Rank:</span>
+                    <span className="font-bold text-[11px] text-emerald-400/80">#{rankValue.toLocaleString()}</span>
+                  </div>
+                )}
               </div>
-              <span className="font-black text-sm text-foreground">{entry.value?.toFixed(2)}</span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     );
