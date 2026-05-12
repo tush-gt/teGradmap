@@ -47,7 +47,7 @@ export const SimulatorLayout = () => {
       
       {/* Top Nav Bar */}
       <nav className="border-b border-white/5 bg-background/40 backdrop-blur-2xl sticky top-0 z-50 px-6 py-4">
-        <div className="max-w-[95%] mx-auto flex justify-between items-center">
+        <div className="max-w-5xl mx-auto flex justify-between items-center">
           <Link to="/" className="flex items-center gap-3 group">
             <div className="w-9 h-9 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform">
               <GraduationCap className="text-white w-5 h-5" />
@@ -62,7 +62,7 @@ export const SimulatorLayout = () => {
         </div>
       </nav>
 
-      <div className="max-w-[95%] mx-auto px-6 pt-12 pb-24 relative z-10">
+      <div className="max-w-5xl mx-auto px-6 pt-12 pb-24 relative z-10">
         
         {/* Page header */}
         <motion.div 

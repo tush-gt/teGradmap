@@ -8,7 +8,6 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, us
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, X, ArrowUp, ArrowDown, Lock, AlertCircle, Search as SearchIcon } from 'lucide-react';
-import { cn } from '../../utils/cn';
 
 const SortableItem = ({ id, option, index, onRemove, onMoveUp, onMoveDown, isFirst, isLast }) => {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
@@ -62,8 +61,8 @@ export const S4_OptionForm = () => {
 
   useEffect(() => {
     setIsLoading(true);
-    // Fetch real available colleges for this category using a high limit
-    api.predict({ percentile: 100, category: profile.category, topN: 100 }).then(data => {
+    // Fetch real available colleges for this category using a very high percentile to see many options
+    api.predict({ percentile: 100, category: profile.category }).then(data => {
       setAvailableOptions(data);
       setIsLoading(false);
     });
@@ -101,28 +100,10 @@ export const S4_OptionForm = () => {
     setCurrentStep(5);
   };
 
-  const filteredAvailable = availableOptions
-    .filter(opt => 
-      opt.college_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      opt.branch_name.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    .sort((a, b) => {
-      // 1. Tier first (Ascending: 1, 2, 3)
-      const tierA = a.institute_tier || 3;
-      const tierB = b.institute_tier || 3;
-      if (tierA !== tierB) return tierA - tierB;
-      
-      // 2. Famous Branch Priority
-      const famousKeywords = ['computer', 'information technology', 'electronics and telecommunication', 'extc', 'software', 'artificial'];
-      const aIsFamous = famousKeywords.some(kw => a.branch_name.toLowerCase().includes(kw));
-      const bIsFamous = famousKeywords.some(kw => b.branch_name.toLowerCase().includes(kw));
-      
-      if (aIsFamous && !bIsFamous) return -1;
-      if (!aIsFamous && bIsFamous) return 1;
-
-      // 3. High cutoff first
-      return (b.cutoff || 0) - (a.cutoff || 0);
-    });
+  const filteredAvailable = availableOptions.filter(opt => 
+    opt.college_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    opt.branch_name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
@@ -161,21 +142,11 @@ export const S4_OptionForm = () => {
             ) : (
               filteredAvailable.map((opt, idx) => (
                 <div key={idx} className="flex justify-between items-center p-3 border rounded-lg bg-card hover:border-brand-base transition-colors group">
-                  <div className="flex-1 min-w-0 pr-2">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <span className={cn(
-                        "text-[9px] font-black uppercase tracking-tighter px-1.5 py-0.5 rounded-sm border",
-                        opt.institute_tier === 1 ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" :
-                        opt.institute_tier === 2 ? "bg-blue-500/10 text-blue-500 border-blue-500/20" :
-                        "bg-slate-500/10 text-slate-500 border-slate-500/20"
-                      )}>
-                        Tier {opt.institute_tier || 3}
-                      </span>
-                      <h4 className="font-bold text-sm truncate" title={opt.college_name}>{opt.college_name}</h4>
-                    </div>
-                    <p className="text-xs text-muted-foreground truncate pl-[4px]">{opt.branch_name}</p>
+                  <div className="min-w-0 pr-2">
+                    <h4 className="font-medium text-sm truncate" title={opt.college_name}>{opt.college_name}</h4>
+                    <p className="text-xs text-muted-foreground truncate">{opt.branch_name}</p>
                   </div>
-                  <Button size="sm" variant="secondary" onClick={() => handleAdd(opt)} className="shrink-0 group-hover:bg-brand-base group-hover:text-white px-4 font-bold">Add</Button>
+                  <Button size="sm" variant="secondary" onClick={() => handleAdd(opt)} className="shrink-0 group-hover:bg-brand-base group-hover:text-white">Add</Button>
                 </div>
               ))
             )}
