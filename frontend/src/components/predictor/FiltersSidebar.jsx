@@ -63,7 +63,7 @@ export const FiltersSidebar = ({ filters, onFilterChange, onReset }) => {
           <Select 
             value={filters.round} 
             onChange={(e) => onFilterChange('round', parseInt(e.target.value))}
-            className="h-11 bg-background/40 border-white/10 text-xs font-bold focus:ring-emerald-500/40"
+            className="h-11 border-white/10 text-xs font-bold focus:ring-emerald-500/40"
           >
             <option value="1">Round 1 (Initial)</option>
             <option value="2">Round 2 (Intermediate)</option>
@@ -77,7 +77,7 @@ export const FiltersSidebar = ({ filters, onFilterChange, onReset }) => {
           <Select 
             value={filters.year} 
             onChange={(e) => onFilterChange('year', e.target.value)}
-            className="h-11 bg-background/40 border-white/10 text-xs font-bold focus:ring-emerald-500/40"
+            className="h-11 border-white/10 text-xs font-bold focus:ring-emerald-500/40"
           >
             <option value="2024">2024 (Latest)</option>
             <option value="2023">2023</option>

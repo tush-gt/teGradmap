@@ -7,6 +7,7 @@ import { GraduationCap, Loader2, ChevronRight, Target, TrendingUp, Activity, Sea
 import { cn } from '../../utils/cn';
 import { Button } from '../common/Button';
 import { Input } from '../common/Input';
+import { Select } from '../common/Select';
 
 
 
@@ -19,7 +20,15 @@ export const PredictorLayout = () => {
   const [isPredicting, setIsPredicting] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [error, setError] = useState(null);
-  const [trendModal, setTrendModal] = useState({ isOpen: false });
+  const [trendModal, setTrendModal] = useState({ 
+    isOpen: false, 
+    instituteCode: null, 
+    branchName: null, 
+    category: null,
+    userPercentile: null,
+    status: null,
+    collegeName: null
+  });
 
   const handlePredict = async () => {
     if (!percentile) return;
@@ -64,7 +73,7 @@ export const PredictorLayout = () => {
         animate={{ y: 0, opacity: 1 }}
         className="border-b border-white/5 bg-background/40 backdrop-blur-2xl sticky top-0 z-50 px-6 py-4"
       >
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
+        <div className="max-w-[95%] mx-auto flex justify-between items-center">
           <Link to="/" className="flex items-center gap-3 group">
             <div className="w-9 h-9 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform">
               <GraduationCap className="text-white w-5 h-5" />
@@ -81,7 +90,7 @@ export const PredictorLayout = () => {
         </div>
       </motion.nav>
 
-      <div className="max-w-7xl mx-auto px-6 pt-12 pb-24 relative z-10">
+      <div className="max-w-[95%] mx-auto px-6 pt-12 pb-24 relative z-10">
         
         {/* Header Section */}
         <motion.div 
@@ -130,13 +139,13 @@ export const PredictorLayout = () => {
             <div>
               <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block mb-3 ml-1">Admission Category</label>
               <div className="relative">
-                <select
+                <Select
                   value={category}
                   onChange={e => setCategory(e.target.value)}
-                  className="w-full h-14 px-5 rounded-xl border border-white/10 bg-background/40 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500 appearance-none transition-all cursor-pointer hover:border-emerald-500/50"
+                  className="h-14 border-white/10 font-bold"
                 >
                   {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
+                </Select>
                 <Filter className="absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
               </div>
             </div>
@@ -146,15 +155,15 @@ export const PredictorLayout = () => {
             <div>
               <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block mb-3 ml-1">Branch Family</label>
               <div className="relative">
-                <select
+                <Select
                   value={branchFamily ?? ''}
                   onChange={e => setBranchFamily(e.target.value || null)}
-                  className="w-full h-14 px-5 rounded-xl border border-white/10 bg-background/40 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500 appearance-none transition-all cursor-pointer hover:border-emerald-500/50"
+                  className="h-14 border-white/10 font-bold"
                 >
                   {BRANCH_FAMILIES.map(bf => (
                     <option key={bf.value ?? 'all'} value={bf.value ?? ''}>{bf.label}</option>
                   ))}
-                </select>
+                </Select>
                 <ChevronRight className="absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground rotate-90 pointer-events-none" />
               </div>
             </div>
@@ -229,6 +238,8 @@ export const PredictorLayout = () => {
                 </div>
               )}
 
+              {/* Prediction Analytics Dashboard Removed as requested */}
+
               {/* Table Result */}
               <div className="glass-morphism rounded-[2.5rem] border-white/5 overflow-hidden shadow-2xl">
                 <div className="px-8 py-6 border-b border-white/5 bg-white/5 flex justify-between items-center">
@@ -265,11 +276,29 @@ export const PredictorLayout = () => {
                           transition={{ delay: idx * 0.04 }}
                           key={item.row_id ?? idx} 
                           className="hover:bg-white/5 transition-colors group cursor-pointer"
+                          onClick={() => {
+                            setTrendModal({ 
+                              isOpen: true, 
+                              instituteCode: item.institute_code, 
+                              branchName: item.branch_name, 
+                              category: item.category,
+                              userPercentile: parseFloat(percentile),
+                              status: item.status,
+                              collegeName: item.college_name
+                            });
+                          }}
                         >
                           <td className="px-8 py-6">
-                            <div className="font-black text-foreground group-hover:text-emerald-400 transition-colors">{item.college_name}</div>
-                            <div className="text-xs text-muted-foreground font-medium mt-1 uppercase tracking-tight">{item.branch_name}</div>
-                            <div className="text-[10px] text-muted-foreground/60 font-medium mt-0.5">Round {item.round} · {item.year} · {item.category}</div>
+                            <div className="flex flex-col group/name cursor-pointer">
+                              <span className="text-sm font-black text-foreground group-hover/name:text-emerald-400 transition-colors border-b border-transparent group-hover/name:border-emerald-400/30 w-fit">
+                                {item.college_name}
+                              </span>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-[10px] font-bold text-muted-foreground/60 tracking-tight uppercase">{item.branch_name}</span>
+                                <span className="text-[10px] font-bold text-muted-foreground/30">•</span>
+                                <span className="text-[10px] font-bold text-muted-foreground/60">{item.district}</span>
+                              </div>
+                            </div>
                           </td>
                           <td className="px-6 py-6 hidden md:table-cell">
                             <div className="flex items-center gap-1">
@@ -280,7 +309,7 @@ export const PredictorLayout = () => {
                                   fill={t <= (4 - item.institute_tier) ? 'currentColor' : 'none'}
                                 />
                               ))}
-                              <span className="text-[10px] text-muted-foreground font-bold ml-1">T{item.institute_tier}</span>
+                              <span className="text-[10px] text-muted-foreground font-bold ml-1">Tier {item.institute_tier}</span>
                             </div>
                           </td>
                           <td className="px-6 py-6">
@@ -305,16 +334,13 @@ export const PredictorLayout = () => {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setTrendModal({ isOpen: true, instituteCode: item.institute_code, branchName: item.branch_name, category: item.category });
-                              }}
                               className="text-emerald-400 hover:bg-emerald-400/10 group/btn"
                             >
                               <TrendingUp className="w-4 h-4 mr-2 group-hover/btn:scale-110 transition-transform" />
                               Trends
                             </Button>
                           </td>
+
                         </motion.tr>
                       ))}
                     </tbody>

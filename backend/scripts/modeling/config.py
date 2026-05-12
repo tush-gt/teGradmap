@@ -101,6 +101,7 @@ RECOMMENDATION_COLUMNS: list[str] = [
     "round",
     "year",
     "choice_code",
+    "institute_code",
 ]
 
 # ──────────────────────────────────────────────────────────────────────

@@ -116,6 +116,8 @@ class RecommendationItem(BaseModel):
     round: Optional[int] = None
     year: Optional[int] = None
     choice_code: Optional[str] = None
+    institute_code: Optional[int] = None
+    college_code: Optional[str] = None
 
 
 class RecommendResponse(BaseModel):
@@ -135,3 +137,73 @@ class ErrorResponse(BaseModel):
 
     detail: str
     code: Optional[str] = None
+
+
+# ──────────────────────────────────────────────────────────────────────
+# SIMULATION SCHEMAS
+# ──────────────────────────────────────────────────────────────────────
+
+class UserProfile(BaseModel):
+    """Candidate profile for simulation."""
+    percentile: float
+    category: str
+
+class OptionItem(BaseModel):
+    """A single choice in the user's option form."""
+    college_code: Optional[str] = None
+    college_name: str
+    branch_name: str
+
+class SimulateRequest(BaseModel):
+    """Request payload for the /simulate endpoint."""
+    profile: UserProfile
+    optionForm: list[OptionItem]
+    currentRound: int
+
+class AllottedSeat(BaseModel):
+    """Details of the successfully allotted seat with historical context."""
+    college_name: str
+    branch_name: str
+    allotted_category: str
+    preference_number: int
+    round: int
+    
+    # Trend Analysis
+    expected_cutoff: Optional[float] = None
+    latest_cutoff: Optional[float] = None
+    cutoff_volatility: Optional[float] = None
+    trend_direction: Optional[str] = None
+    historical_years_used: Optional[list[int]] = None
+
+class SimulateResponse(BaseModel):
+    """Response payload for the simulation result."""
+    allotted: bool
+    seat: Optional[AllottedSeat] = None
+    merit_rank: int
+    message: str
+
+
+# ──────────────────────────────────────────────────────────────────────
+# TRENDS SCHEMAS
+# ──────────────────────────────────────────────────────────────────────
+
+class YearlyTrendItem(BaseModel):
+    """Aggregated cutoff data for a specific year across all rounds."""
+    year: int
+    round1: Optional[float] = None
+    round2: Optional[float] = None
+    round3: Optional[float] = None
+
+class TrendSummary(BaseModel):
+    """Overall analysis of the historical data."""
+    volatility: float
+    trend_direction: str
+    avg_cutoff: float
+    latest_cutoff: float
+
+class TrendResponse(BaseModel):
+    """Unified response for the /trends endpoint."""
+    trends: list[YearlyTrendItem]
+    summary: TrendSummary
+
+

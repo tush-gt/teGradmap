@@ -3,7 +3,7 @@ import { Button } from '../common/Button';
 import { TeachTooltip } from '../common/TeachTooltip';
 import { useAppStore } from '../../store/useAppStore';
 import { api } from '../../services/api';
-import { Loader2, PartyPopper, Frown, ChevronRight, MapPin, GitBranch, Star } from 'lucide-react';
+import { Loader2, PartyPopper, Frown, ChevronRight, MapPin, GitBranch, Star, TrendingUp, Activity } from 'lucide-react';
 import { cn } from '../../utils/cn';
 
 export const S5_Allotment = () => {
@@ -136,6 +136,34 @@ export const S5_Allotment = () => {
                     <div className="font-bold">{merit_rank?.toLocaleString()}</div>
                   </div>
                 </div>
+
+                {/* Multi-Year Trend Analysis */}
+                {seat.expected_cutoff && (
+                  <div className="mt-6 pt-5 border-t border-brand-base/20">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Activity className="w-3.5 h-3.5 text-brand-base" />
+                      <span className="text-[10px] font-black uppercase tracking-widest text-brand-base/70">Historical Trend Analysis</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <div className="text-[9px] font-black uppercase text-muted-foreground/60 tracking-tighter mb-1">Expected Cutoff</div>
+                        <div className="text-lg font-black text-brand-base">{seat.expected_cutoff}</div>
+                        <div className="text-[9px] text-muted-foreground/40 mt-0.5">Weighted avg: {seat.historical_years_used?.join(', ')}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-[9px] font-black uppercase text-muted-foreground/60 tracking-tighter mb-1">Drift Index</div>
+                        <div className={cn(
+                          "text-sm font-bold flex items-center justify-end gap-1",
+                          seat.trend_direction === 'RISING' ? "text-rose-400" : "text-emerald-400"
+                        )}>
+                          {seat.trend_direction === 'RISING' ? <TrendingUp className="w-3 h-3" /> : <Activity className="w-3 h-3" />}
+                          {seat.trend_direction}
+                        </div>
+                        <div className="text-[9px] text-muted-foreground/40 mt-0.5">Volatility σ: {seat.cutoff_volatility}</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {isAutoFreeze && (

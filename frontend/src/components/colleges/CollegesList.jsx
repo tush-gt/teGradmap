@@ -41,7 +41,7 @@ export const CollegesList = () => {
         animate={{ y: 0, opacity: 1 }}
         className="border-b border-white/5 bg-background/40 backdrop-blur-2xl sticky top-0 z-50 px-6 py-4"
       >
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
+        <div className="max-w-[95%] mx-auto flex justify-between items-center">
           <Link to="/" className="flex items-center gap-3 group">
             <div className="w-9 h-9 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform">
               <GraduationCap className="text-white w-5 h-5" />
@@ -55,7 +55,7 @@ export const CollegesList = () => {
         </div>
       </motion.nav>
 
-      <div className="max-w-7xl mx-auto px-6 pt-12 pb-24 relative z-10">
+      <div className="max-w-[95%] mx-auto px-6 pt-12 pb-24 relative z-10">
         
         {/* Header */}
         <motion.div 
@@ -154,7 +154,7 @@ export const CollegesList = () => {
                       Code: {college.code}
                     </div>
                     <div className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${TYPE_COLORS[college.type] || 'bg-white/5 text-muted-foreground border-white/10'}`}>
-                      {college.type.split(' ')[0]}
+                      {college.type ? college.type.split(' ')[0] : 'N/A'}
                     </div>
                   </div>
 

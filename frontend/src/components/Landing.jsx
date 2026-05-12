@@ -91,7 +91,7 @@ export const Landing = () => {
       </motion.nav>
 
       {/* ── HERO SECTION ── */}
-      <section className="relative min-h-screen flex items-center pt-20 px-6 md:px-12 max-w-7xl mx-auto">
+      <section className="relative min-h-screen flex items-center pt-20 px-6 md:px-12 max-w-[95%] mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center w-full">
           
           {/* Hero Content */}
@@ -217,7 +217,7 @@ export const Landing = () => {
       </section>
 
       {/* ── FEATURES BENTO GRID ── */}
-      <section className="py-32 px-6 md:px-12 max-w-7xl mx-auto">
+      <section className="py-32 px-6 md:px-12 max-w-[95%] mx-auto">
         <div className="text-center mb-20">
           <motion.h2 
             initial={{ opacity: 0, y: 20 }}
@@ -343,7 +343,7 @@ export const Landing = () => {
       <section className="px-6 md:px-12 pb-32">
         <motion.div 
           whileHover={{ scale: 1.01 }}
-          className="max-w-5xl mx-auto relative rounded-[3rem] overflow-hidden bg-gradient-to-br from-emerald-600 to-teal-700 shadow-[0_40px_100px_rgba(16,185,129,0.3)]"
+          className="max-w-[95%] mx-auto relative rounded-[3rem] overflow-hidden bg-gradient-to-br from-emerald-600 to-teal-700 shadow-[0_40px_100px_rgba(16,185,129,0.3)]"
         >
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.2),transparent_70%)]" />
           <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.05)_50%,transparent_75%)] bg-[length:250%_250%] animate-[shimmer_5s_infinite_linear]" />
