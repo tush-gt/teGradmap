@@ -14,7 +14,27 @@ const TYPE_COLORS = {
   'Un-Aided': 'bg-amber-500/15 text-amber-400 border-amber-400/20',
 };
 
-const DISTRICTS = ['All', 'Mumbai', 'Pune', 'Nashik', 'Nagpur', 'Aurangabad', 'Amravati', 'Satara', 'Jalgaon', 'Buldhana'];
+const DISTRICTS = ['All', 'Mumbai', 'Pune', 'Nagpur', 'Nashik', 'Aurangabad', 'Amravati', 'Satara', 'Jalgaon', 'Buldhana'];
+
+const sortCollegesByPriority = (colleges) => {
+  const priorityMap = {
+    'mumbai': 1,
+    'pune': 2,
+    'nagpur': 3,
+    'nashik': 4
+  };
+
+  return [...colleges].sort((a, b) => {
+    const distA = a.district.toLowerCase();
+    const distB = b.district.toLowerCase();
+    
+    const priA = priorityMap[distA] || 999;
+    const priB = priorityMap[distB] || 999;
+
+    if (priA !== priB) return priA - priB;
+    return a.name.localeCompare(b.name);
+  });
+};
 
 export const CollegesList = () => {
   const [colleges, setColleges] = useState([]);
@@ -23,12 +43,14 @@ export const CollegesList = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    api.getColleges().then(setColleges);
+    api.getColleges().then(data => {
+      setColleges(sortCollegesByPriority(data));
+    });
   }, []);
 
   const filtered = colleges.filter(c => {
     const matchSearch = c.name.toLowerCase().includes(search.toLowerCase());
-    const matchDistrict = district === 'All' || c.district === district;
+    const matchDistrict = district.toLowerCase() === 'all' || c.district.toLowerCase() === district.toLowerCase();
     return matchSearch && matchDistrict;
   });
 
@@ -41,7 +63,7 @@ export const CollegesList = () => {
         animate={{ y: 0, opacity: 1 }}
         className="border-b border-white/5 bg-background/40 backdrop-blur-2xl sticky top-0 z-50 px-6 py-4"
       >
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
+        <div className="max-w-screen-2xl mx-auto flex justify-between items-center">
           <Link to="/" className="flex items-center gap-3 group">
             <div className="w-9 h-9 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform">
               <GraduationCap className="text-white w-5 h-5" />
@@ -55,7 +77,7 @@ export const CollegesList = () => {
         </div>
       </motion.nav>
 
-      <div className="max-w-7xl mx-auto px-6 pt-12 pb-24 relative z-10">
+      <div className="max-w-screen-2xl mx-auto px-6 pt-12 pb-24 relative z-10">
         
         {/* Header */}
         <motion.div 
@@ -105,7 +127,7 @@ export const CollegesList = () => {
                 key={d}
                 onClick={() => setDistrict(d)}
                 className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${
-                  district === d
+                  district.toLowerCase() === d.toLowerCase()
                     ? 'bg-emerald-600 text-white border-emerald-600 shadow-xl shadow-emerald-500/20'
                     : 'border-white/5 bg-white/5 text-muted-foreground hover:bg-white/10 hover:border-white/20'
                 }`}
@@ -132,14 +154,14 @@ export const CollegesList = () => {
           ) : (
             <motion.div 
               layout
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+              className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-8"
             >
               {filtered.map((college, idx) => (
                 <motion.div
                   layout
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: idx * 0.02 }}
+                  transition={{ delay: Math.min(idx * 0.02, 0.5) }}
                   key={college.code}
                   onClick={() => navigate(`/colleges/${college.code}`)}
                   className="group glass-morphism rounded-[2.5rem] border-white/5 p-8 cursor-pointer hover:border-emerald-500/30 hover:-translate-y-2 transition-all duration-500 relative overflow-hidden shadow-xl"
@@ -192,5 +214,6 @@ export const CollegesList = () => {
     </div>
   );
 };
+
 
 

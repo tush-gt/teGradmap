@@ -142,19 +142,30 @@ export const S4_OptionForm = () => {
       return (b.percentile_cutoff || b.cutoff || 0) - (a.percentile_cutoff || a.cutoff || 0);
     });
 
-  const puneColleges = baseFiltered.filter(opt => isPune(opt.college_name)).slice(0, 100);
-  const mumbaiColleges = baseFiltered.filter(opt => isMumbai(opt.college_name)).slice(0, 100);
+  const mumbaiColleges = baseFiltered.filter(opt => isMumbai(opt.college_name)).slice(0, 75);
+  const puneColleges = baseFiltered.filter(opt => isPune(opt.college_name)).slice(0, 75);
 
-  // Combine and interleave them based on the same powerful sorting
-  const filteredAvailable = [...puneColleges, ...mumbaiColleges].sort((a, b) => {
+  // Combine and interleave them based on priority: Mumbai > Pune
+  const filteredAvailable = [...mumbaiColleges, ...puneColleges].sort((a, b) => {
+    // 1. Regional Priority: Mumbai (1) > Pune (2)
+    const isMumbaiA = isMumbai(a.college_name) ? 1 : 2;
+    const isMumbaiB = isMumbai(b.college_name) ? 1 : 2;
+    if (isMumbaiA !== isMumbaiB) return isMumbaiA - isMumbaiB;
+
+    // 2. Tier
     const tierA = a.institute_tier || 3;
     const tierB = b.institute_tier || 3;
     if (tierA !== tierB) return tierA - tierB;
+
+    // 3. Branch
     const pA = getBranchPriority(a.branch_name);
     const pB = getBranchPriority(b.branch_name);
     if (pA !== pB) return pA - pB;
+
+    // 4. Cutoff
     return (b.percentile_cutoff || b.cutoff || 0) - (a.percentile_cutoff || a.cutoff || 0);
   }).slice(0, 200);
+
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">

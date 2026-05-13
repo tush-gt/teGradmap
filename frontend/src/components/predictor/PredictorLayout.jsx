@@ -32,7 +32,37 @@ export const PredictorLayout = () => {
         districts: district ? [district] : [],
         branches: branch ? [branch] : [],
       });
-      setResults(res);
+      
+      // Sort results by Bucket (Safe -> Moderate -> Reach)
+      // and internally by Tier -> City -> Probability
+      const sortedResults = [...res].sort((a, b) => {
+        const bucketOrder = { 'Safe': 1, 'Moderate': 2, 'Reach': 3 };
+        if (bucketOrder[a.status] !== bucketOrder[b.status]) {
+          return bucketOrder[a.status] - bucketOrder[b.status];
+        }
+        
+        // 1. Tier Priority (1 > 2 > 3)
+        const tierA = a.institute_tier || 3;
+        const tierB = b.institute_tier || 3;
+        if (tierA !== tierB) return tierA - tierB;
+
+        // 2. City Priority (Mumbai > Pune > Nagpur > Nashik)
+        const cityPriority = { 'mumbai': 1, 'pune': 2, 'nagpur': 3, 'nashik': 4 };
+        const distA = (a.district || '').toLowerCase();
+        const distB = (b.district || '').toLowerCase();
+        const priA = cityPriority[distA] || 999;
+        const priB = cityPriority[distB] || 999;
+        if (priA !== priB) return priA - priB;
+
+        // 3. Probability/Score tie-breaker
+        if (b.ml_probability !== a.ml_probability) {
+          return (b.ml_probability || 0) - (a.ml_probability || 0);
+        }
+        return (b.recommendation_score || 0) - (a.recommendation_score || 0);
+      });
+
+      setResults(sortedResults);
+
     } finally {
       setIsPredicting(false);
     }
@@ -51,7 +81,7 @@ export const PredictorLayout = () => {
         animate={{ y: 0, opacity: 1 }}
         className="border-b border-white/5 bg-background/40 backdrop-blur-2xl sticky top-0 z-50 px-6 py-4"
       >
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
+        <div className="max-w-screen-2xl mx-auto flex justify-between items-center">
           <Link to="/" className="flex items-center gap-3 group">
             <div className="w-9 h-9 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform">
               <GraduationCap className="text-white w-5 h-5" />
@@ -68,7 +98,7 @@ export const PredictorLayout = () => {
         </div>
       </motion.nav>
 
-      <div className="max-w-7xl mx-auto px-6 pt-12 pb-24 relative z-10">
+      <div className="max-w-screen-2xl mx-auto px-6 pt-12 pb-24 relative z-10">
         
         {/* Header Section */}
         <motion.div 
@@ -248,7 +278,7 @@ export const PredictorLayout = () => {
                         <motion.tr 
                           initial={{ opacity: 0, x: -10 }}
                           animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: idx * 0.05 }}
+                          transition={{ delay: Math.min(idx * 0.05, 0.8) }}
                           key={idx} 
                           className="hover:bg-white/5 transition-colors group cursor-pointer"
                           onClick={() => navigate(`/colleges/${item.college_code}`)}
@@ -263,11 +293,11 @@ export const PredictorLayout = () => {
                             </div>
                           </td>
                           <td className="px-6 py-6">
-                            <div className="font-black text-lg">{item.cutoff}</div>
+                            <div className="font-black text-lg">{item.percentile_cutoff || item.cutoff}</div>
                             <div className={cn("text-[10px] font-black uppercase tracking-tighter mt-1",
                               item.status === 'Safe' ? "text-emerald-400" : item.status === 'Moderate' ? "text-amber-400" : "text-rose-400"
                             )}>
-                              {item.delta > 0 ? 'Surplus ' : 'Shortfall '}{Math.abs(item.delta)}
+                              {item.percentile_gap >= 0 ? 'Surplus ' : 'Shortfall '}{Math.abs(item.percentile_gap || item.delta || 0)}
                             </div>
                           </td>
                           <td className="px-6 py-6">

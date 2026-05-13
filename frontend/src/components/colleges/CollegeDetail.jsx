@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { api } from '../../services/api';
+import { api, BRANCHES, CATEGORIES } from '../../services/api';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   PieChart, Pie, Cell, AreaChart, Area
@@ -10,27 +10,10 @@ import { GraduationCap, MapPin, ArrowLeft, TrendingUp, BarChart2, PieChart as Pi
 import { cn } from '../../utils/cn';
 import { Button } from '../common/Button';
 
-const BRANCHES = [
-  'Computer Engineering',
-  'Information Technology',
-  'Electronics and Telecommunication',
-  'Mechanical Engineering',
-  'Civil Engineering',
-];
-const CATEGORIES = ['GOPENH', 'LOPENH', 'GOBCH', 'GOSC'];
 const CHART_TABS = ['Trends', 'Distribution', 'Comparison'];
 
 const COLORS = ['#10b981', '#059669', '#06b6d4', '#34d399', '#f59e0b'];
 const ROUND_COLORS = { round1: '#10b981', round2: '#059669', round3: '#06b6d4' };
-
-const mockCollegeDetails = {
-  '3012': { established: 1887, affiliation: 'Mumbai University', intake: 960, naac: 'A++', location: 'Matunga, Mumbai' },
-  '6006': { established: 1854, affiliation: 'Pune University', intake: 840, naac: 'A++', location: 'Shivajinagar, Pune' },
-  '3009': { established: 1933, affiliation: 'Mumbai University', intake: 480, naac: 'A', location: 'Matunga, Mumbai' },
-  '3014': { established: 1957, affiliation: 'Mumbai University', intake: 540, naac: 'A', location: 'Andheri, Mumbai' },
-  '6271': { established: 1983, affiliation: 'Pune University', intake: 720, naac: 'A', location: 'Dhankawadi, Pune' },
-};
-const defaultDetails = { established: 1980, affiliation: 'Regional University', intake: 480, naac: 'B+', location: 'Maharashtra' };
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
@@ -69,7 +52,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 export const CollegeDetail = () => {
   const { code } = useParams();
   const [college, setCollege] = useState(null);
-  const [selectedBranch, setSelectedBranch] = useState(BRANCHES[0]);
+  const [selectedBranch, setSelectedBranch] = useState(BRANCHES[0] || 'Computer Engineering');
   const [selectedCategory, setSelectedCategory] = useState('GOPENH');
   const [trendData, setTrendData] = useState([]);
   const [branchCompareData, setBranchCompareData] = useState([]);
@@ -88,28 +71,26 @@ export const CollegeDetail = () => {
     setLoading(true);
     api.getTrends({ institute_code: code, branch_name: selectedBranch, category: selectedCategory })
       .then(data => {
-        setTrendData(data);
+        setTrendData(data || []);
         setLoading(false);
       });
   }, [code, selectedBranch, selectedCategory]);
 
   useEffect(() => {
-    if (!code) return;
-    Promise.all(
-      BRANCHES.map(b =>
-        api.getTrends({ institute_code: code, branch_name: b, category: selectedCategory })
-          .then(data => {
-            const yr2024 = data.find(d => d.year === '2024');
-            return { branch: b.replace('Electronics and Telecommunication', 'ENTC').replace('Computer Engineering', 'CS').replace('Information Technology', 'IT').replace('Mechanical Engineering', 'Mech').replace('Civil Engineering', 'Civil'), cutoff: yr2024?.round1 || 0 };
-          })
-      )
-    ).then(setBranchCompareData);
+    if (!code || !selectedCategory) return;
+    api.getCollegeAnalytics(code, selectedCategory)
+      .then(data => {
+        if (data && data.branch_comparison) {
+          setBranchCompareData(data.branch_comparison.map(b => ({
+            branch: b.branch_name.replace('Engineering', '').replace('Information Technology', 'IT').replace('Computer', 'CS').trim(),
+            cutoff: b.latest_cutoff
+          })));
+        }
+      });
   }, [code, selectedCategory]);
 
-  const details = mockCollegeDetails[code] || defaultDetails;
-
   const pieData = trendData.map(d => ({
-    name: d.year,
+    name: d.year.toString(),
     value: d.round1 || 0,
   })).filter(d => d.value > 0);
 
@@ -140,7 +121,7 @@ export const CollegeDetail = () => {
         animate={{ y: 0, opacity: 1 }}
         className="border-b border-white/5 bg-background/40 backdrop-blur-2xl sticky top-0 z-50 px-6 py-4"
       >
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
+        <div className="max-w-screen-2xl mx-auto flex justify-between items-center">
           <Link to="/" className="flex items-center gap-3 group">
             <div className="w-9 h-9 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform">
               <GraduationCap className="text-white w-5 h-5" />
@@ -155,7 +136,7 @@ export const CollegeDetail = () => {
         </div>
       </motion.nav>
 
-      <div className="max-w-7xl mx-auto px-6 pt-12 pb-24 relative z-10">
+      <div className="max-w-screen-2xl mx-auto px-6 pt-12 pb-24 relative z-10">
 
         {/* Hero Section */}
         {college && (
@@ -185,16 +166,16 @@ export const CollegeDetail = () => {
                   <h1 className="text-4xl md:text-5xl font-black text-foreground mb-4 tracking-tight leading-[1.1]">{college.name}</h1>
                   
                   <div className="flex items-center gap-2 text-muted-foreground font-bold text-sm mb-10">
-                    <MapPin className="w-4 h-4 text-emerald-500" /> {details.location}
+                    <MapPin className="w-4 h-4 text-emerald-500" /> {college.district}
                   </div>
 
                   {/* Stats Grid */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {[
-                      { label: 'Established', value: details.established, icon: Calendar },
-                      { label: 'Annual Intake', value: details.intake, icon: Users },
-                      { label: 'NAAC Rating', value: details.naac, icon: Award },
-                      { label: 'University', value: details.affiliation.split(' ')[0], icon: Building2 },
+                      { label: 'Status', value: college.type.includes('Autonomous') ? 'Autonomous' : 'Affiliated', icon: Award },
+                      { label: 'Region', value: college.district, icon: MapPin },
+                      { label: 'Category', value: 'Maharashtra State', icon: Users },
+                      { label: 'Cycle', value: 'CAP 2025', icon: Calendar },
                     ].map((s, i) => (
                       <div key={i} className="glass-morphism bg-white/5 border border-white/5 rounded-2xl p-4 flex items-center gap-4">
                         <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center">
@@ -228,7 +209,7 @@ export const CollegeDetail = () => {
               <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Select Department</h3>
             </div>
             <div className="flex flex-wrap gap-2">
-              {BRANCHES.map(b => (
+              {BRANCHES.slice(0, 15).map(b => (
                 <button
                   key={b}
                   onClick={() => setSelectedBranch(b)}
@@ -257,7 +238,7 @@ export const CollegeDetail = () => {
               </div>
               <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Admission Group</h3>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 overflow-y-auto max-h-[120px]">
               {CATEGORIES.map(c => (
                 <button
                   key={c}
@@ -290,7 +271,7 @@ export const CollegeDetail = () => {
               </h2>
               <p className="text-muted-foreground font-medium max-w-xl">
                 {activeChart === 'Comparison' 
-                  ? 'Competitive analysis across departments for the 2024 cycle.' 
+                  ? 'Competitive analysis across departments for the current cycle.' 
                   : `Visualizing admission thresholds for ${selectedBranch.split(' ')[0]} department.`}
               </p>
             </div>
@@ -419,7 +400,7 @@ export const CollegeDetail = () => {
                           tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10, fontWeight: 900 }} 
                         />
                         <YAxis 
-                          domain={['dataMin - 5', 'dataMax + 1']} 
+                          domain={['dataMin - 5', 'dataMax + 5']} 
                           axisLine={false} 
                           tickLine={false} 
                           tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10, fontWeight: 900 }} 
@@ -428,7 +409,7 @@ export const CollegeDetail = () => {
                         <Area 
                           type="monotone" 
                           dataKey="cutoff" 
-                          name="2024 Threshold" 
+                          name="Current Threshold" 
                           stroke={COLORS[0]} 
                           strokeWidth={4} 
                           fill="url(#colorCutoff)" 
@@ -459,3 +440,4 @@ export const CollegeDetail = () => {
     </div>
   );
 };
+
