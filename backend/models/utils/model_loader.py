@@ -89,14 +89,17 @@ def predict_probability(input_df: pd.DataFrame) -> np.ndarray:
     if not validate_feature_columns(input_df):
         raise ValueError("Input DataFrame is missing required features. Check logs for details.")
         
-    model = get_model()
-    
     try:
+        model = get_model()
         # Ensure only the required columns in the correct order are passed
         X = input_df[REQUIRED_FEATURES]
         # predict_proba returns array of shape (n_samples, n_classes). Class 1 is 'Admitted'
         probabilities = model.predict_proba(X)[:, 1]
         return probabilities
+    except (FileNotFoundError, RuntimeError) as e:
+        logger.warning(f"ML Model unavailable, using neutral probabilities. Error: {e}")
+        # Return neutral 0.5 probability for all rows if model is missing
+        return np.full(len(input_df), 0.5)
     except Exception as e:
         logger.error(f"Error during probability prediction: {str(e)}")
         raise RuntimeError(f"Prediction failed: {str(e)}") from e
