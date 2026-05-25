@@ -116,3 +116,27 @@ BUCKET_PRIORITY: dict[str, int] = {
     "TARGET": 2,
     "AMBITIOUS": 1,
 }
+
+# ──────────────────────────────────────────────────────────────────────
+# City / Location Priority (lower = better)
+# Colleges in Mumbai/Pune sort first within the same tier.
+# ──────────────────────────────────────────────────────────────────────
+CITY_FRAGMENTS_PRIORITY: list[str] = [
+    "mumbai",
+    "pune",
+    "nagpur",
+    "nashik",
+    "aurangabad",
+]
+
+# ──────────────────────────────────────────────────────────────────────
+# Branch Family Sort Priority (lower = shown first)
+# ──────────────────────────────────────────────────────────────────────
+BRANCH_FAMILY_SORT_PRIORITY: dict[str, int] = {
+    "CS_FAMILY": 1,
+    "CIRCUITS_FAMILY": 2,
+    "CORE_MECHANICAL": 3,
+    "CIVIL_FAMILY": 4,
+    "CHEMICAL_FAMILY": 5,
+    "OTHER": 6,
+}

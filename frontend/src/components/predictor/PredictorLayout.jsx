@@ -1,25 +1,56 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TrendChartModal } from './TrendChartModal';
-import { api, CATEGORIES, BRANCHES } from '../../services/api';
+import { api, CATEGORIES } from '../../services/api';
 import { Link, useNavigate } from 'react-router-dom';
 import { GraduationCap, Loader2, ChevronRight, Target, TrendingUp, Activity, Search, Sparkles, Filter, Info, MapPin } from 'lucide-react';
 import { cn } from '../../utils/cn';
 import { Button } from '../common/Button';
 import { Input } from '../common/Input';
 
-const DISTRICTS = ['Mumbai', 'Pune', 'Nashik', 'Nagpur', 'Aurangabad', 'Amravati', 'Satara', 'Jalgaon', 'Buldhana'];
+// Smart keyword → branch_family mapping
+const BRANCH_KEYWORD_MAP = {
+  CS_FAMILY:        ['cs', 'cse', 'computer', 'it', 'information technology', 'ai', 'ml', 'data science', 'software', 'cyber'],
+  CIRCUITS_FAMILY:  ['ece', 'electronics', 'electrical', 'entc', 'e&tc', 'circuits', 'vlsi', 'instrumentation'],
+  CORE_MECHANICAL:  ['mech', 'mechanical', 'auto', 'automobile', 'robotics', 'production', 'manufacturing'],
+  CIVIL_FAMILY:     ['civil', 'structural', 'construction', 'environmental', 'geo'],
+  CHEMICAL_FAMILY:  ['chemical', 'chem', 'polymer', 'petro', 'petroleum', 'paint', 'plastic'],
+};
+
+const BRANCH_FAMILY_OPTIONS = [
+  { value: '',                label: 'All Branches' },
+  { value: 'CS_FAMILY',      label: 'Computer & IT' },
+  { value: 'CIRCUITS_FAMILY', label: 'Electronics & Electrical' },
+  { value: 'CORE_MECHANICAL', label: 'Mechanical & Robotics' },
+  { value: 'CIVIL_FAMILY',   label: 'Civil & Structural' },
+  { value: 'CHEMICAL_FAMILY', label: 'Chemical & Polymer' },
+];
+
+function resolveBranchFamily(input) {
+  if (!input) return null;
+  const q = input.trim().toLowerCase();
+  if (!q) return null;
+  // Check if it's already a family key
+  if (BRANCH_KEYWORD_MAP[q.toUpperCase()]) return q.toUpperCase();
+  // Fuzzy keyword match
+  for (const [family, keywords] of Object.entries(BRANCH_KEYWORD_MAP)) {
+    if (keywords.some(kw => q.includes(kw) || kw.includes(q))) return family;
+  }
+  return null;
+}
 
 export const PredictorLayout = () => {
   const navigate = useNavigate();
   const [percentile, setPercentile] = useState('');
   const [category, setCategory] = useState('GOPENH');
-  const [district, setDistrict] = useState('');
-  const [branch, setBranch] = useState('');
+  const [branchInput, setBranchInput] = useState('');
   const [results, setResults] = useState([]);
   const [isPredicting, setIsPredicting] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [trendModal, setTrendModal] = useState({ isOpen: false });
+
+  const resolvedFamily = useMemo(() => resolveBranchFamily(branchInput), [branchInput]);
+  const familyLabel = BRANCH_FAMILY_OPTIONS.find(o => o.value === resolvedFamily)?.label;
 
   const handlePredict = async () => {
     if (!percentile) return;
@@ -29,8 +60,7 @@ export const PredictorLayout = () => {
       const res = await api.predict({
         percentile: parseFloat(percentile),
         category,
-        districts: district ? [district] : [],
-        branches: branch ? [branch] : [],
+        branches: resolvedFamily ? [resolvedFamily] : [],
       });
       
       // Sort results by Bucket (Safe -> Moderate -> Reach)
@@ -127,7 +157,7 @@ export const PredictorLayout = () => {
         >
           <div className="absolute -top-24 -right-24 w-64 h-64 bg-emerald-600/10 rounded-full blur-[100px] group-hover:bg-emerald-600/20 transition-all duration-500" />
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10 relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10 relative z-10">
             {/* Percentile Input */}
             <div>
               <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block mb-3 ml-1">Percentile Score</label>
@@ -158,35 +188,26 @@ export const PredictorLayout = () => {
               </div>
             </div>
 
-            {/* District Select */}
-            <div>
-              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block mb-3 ml-1">Target District</label>
+            {/* Smart Branch Filter */}
+            <div className="lg:col-span-2">
+              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block mb-3 ml-1">Branch Filter</label>
               <div className="relative">
-                <select
-                  value={district}
-                  onChange={e => setDistrict(e.target.value)}
-                  className="w-full h-14 px-5 rounded-xl border border-white/10 bg-background/40 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500 appearance-none transition-all cursor-pointer hover:border-emerald-500/50"
-                >
-                  <option value="">Maharashtra (All)</option>
-                  {DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
-                </select>
-                <MapPin className="absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-              </div>
-            </div>
-
-            {/* Branch Select */}
-            <div>
-              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block mb-3 ml-1">Study Branch</label>
-              <div className="relative">
-                <select
-                  value={branch}
-                  onChange={e => setBranch(e.target.value)}
-                  className="w-full h-14 px-5 rounded-xl border border-white/10 bg-background/40 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500 appearance-none transition-all cursor-pointer hover:border-emerald-500/50"
-                >
-                  <option value="">Any Engineering Branch</option>
-                  {BRANCHES.map(b => <option key={b} value={b}>{b}</option>)}
-                </select>
-                <ChevronRight className="absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground rotate-90 pointer-events-none" />
+                <Input
+                  type="text"
+                  value={branchInput}
+                  onChange={e => setBranchInput(e.target.value)}
+                  placeholder="Type: CS, IT, Civil, Mech..."
+                  className="h-14 bg-background/40 border-white/10 text-sm font-bold pr-36"
+                />
+                {resolvedFamily ? (
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 px-3 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-black uppercase tracking-wider">
+                    {familyLabel}
+                  </span>
+                ) : branchInput.trim() ? (
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 px-3 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-400 text-[10px] font-black uppercase tracking-wider">
+                    All Branches
+                  </span>
+                ) : null}
               </div>
             </div>
           </div>
@@ -195,7 +216,7 @@ export const PredictorLayout = () => {
             <div className="flex items-center gap-3 text-muted-foreground bg-white/5 px-4 py-2 rounded-full border border-white/5">
               <Info className="w-4 h-4 text-emerald-400" />
               <p className="text-[11px] font-bold">
-                Showing <span className="text-emerald-400">{category}</span> seats only
+                Showing <span className="text-emerald-400">{category}</span>{resolvedFamily ? <> &middot; <span className="text-emerald-400">{familyLabel}</span></> : ''} seats
               </p>
             </div>
             <Button

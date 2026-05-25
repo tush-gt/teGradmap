@@ -48,15 +48,48 @@ def deduplicate_recommendations(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def _compute_city_priority(college_name: str) -> int:
+    """
+    Return a numeric priority based on whether the college name
+    contains a known city fragment. Lower = better.
+    Mumbai = 1, Pune = 2, etc.  Unknown = 999.
+    """
+    name_lower = college_name.lower()
+    for idx, city in enumerate(config.CITY_FRAGMENTS_PRIORITY, start=1):
+        if city in name_lower:
+            return idx
+    return 999
+
+
 def rank_within_buckets(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Sort candidates: bucket priority ↓, then final_score ↓, then
-    percentile_gap ↓ (closer gap = more relevant within same score).
+    Sort candidates with a deterministic multi-key ordering:
+      1. bucket_priority  ↓  (SAFE first)
+      2. institute_tier   ↑  (Tier 1 first)
+      3. city_priority    ↑  (Mumbai > Pune > others)
+      4. branch_sort_pri  ↑  (CS > Circuits > Mech > ...)
+      5. final_score      ↓  (highest score first)
     """
+    # Compute sort helpers (cheap, runs on already-filtered ~300 rows)
+    df = df.copy()
+    df["city_priority"] = df["college_name"].apply(_compute_city_priority)
+    df["branch_sort_priority"] = df["branch_family"].map(
+        config.BRANCH_FAMILY_SORT_PRIORITY
+    ).fillna(999)
+
     df = df.sort_values(
-        by=["bucket_priority", "final_score", "percentile_gap"],
-        ascending=[False, False, False],
+        by=[
+            "bucket_priority",
+            "institute_tier",
+            "city_priority",
+            "branch_sort_priority",
+            "final_score",
+        ],
+        ascending=[False, True, True, True, False],
     )
+
+    # Drop helper columns — they're not needed in the output
+    df = df.drop(columns=["city_priority", "branch_sort_priority"])
     return df
 
 
