@@ -23,6 +23,25 @@ const fetchAPI = async (endpoint, options = {}) => {
   return response.json();
 };
 
+const getBranchFamily = (branch) => {
+  if (!branch) return null;
+  const b = String(branch).toUpperCase();
+  
+  const csKeywords = ["COMPUTER", "INFORMATION TECHNOLOGY", "DATA SCIENCE", "ARTIFICIAL INTELLIGENCE", "MACHINE LEARNING", "IT", "SOFTWARE", "CYBER"];
+  const circuitsKeywords = ["ELECTRONICS", "ELECTRICAL", "EXTC", "TELECOMMUNICATION", "INSTRUMENTATION"];
+  const mechanicalKeywords = ["MECHANICAL", "PRODUCTION", "AUTOMOBILE", "AERONAUTICAL", "MECHATRONICS", "ROBOTICS"];
+  const civilKeywords = ["CIVIL", "STRUCTURAL", "CONSTRUCTION"];
+  const chemicalKeywords = ["CHEMICAL", "POLYMER", "TEXTILE", "PHARMACY", "BIO"];
+
+  if (csKeywords.some(k => b.includes(k))) return "CS_FAMILY";
+  if (circuitsKeywords.some(k => b.includes(k))) return "CIRCUITS_FAMILY";
+  if (mechanicalKeywords.some(k => b.includes(k))) return "CORE_MECHANICAL";
+  if (civilKeywords.some(k => b.includes(k))) return "CIVIL_FAMILY";
+  if (chemicalKeywords.some(k => b.includes(k))) return "CHEMICAL_FAMILY";
+  
+  return "OTHER";
+};
+
 export const api = {
   // POST /recommend
   async predict({ percentile, category, districts = [], branches = [], topN = 100 }) {
@@ -31,7 +50,7 @@ export const api = {
     const body = {
       percentile: parseFloat(percentile),
       category: category,
-      branch_family: branches.length > 0 ? branches[0] : null,
+      branch_family: branches.length > 0 ? getBranchFamily(branches[0]) : null,
       preferred_tiers: null, // Default to all tiers
       top_n: topN
     };
