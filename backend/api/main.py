@@ -276,10 +276,10 @@ def get_trends(institute_code: str, branch_name: str, category: str):
     if _dataset_cache is None:
         raise HTTPException(status_code=503, detail="Dataset not loaded")
 
-    log.info("\n[DEBUG] Trends Request:")
-    log.info("inst=%s", institute_code)
-    log.info("branch=%s", branch_name)
-    log.info("category=%s", category)
+    log.debug("\n[DEBUG] Trends Request:")
+    log.debug("inst=%s", institute_code)
+    log.debug("branch=%s", branch_name)
+    log.debug("category=%s", category)
 
     # 1. Advanced Institute Match (Handles code changes like 6006 -> 16006)
     inst_code_str = str(institute_code)
@@ -320,12 +320,12 @@ def get_trends(institute_code: str, branch_name: str, category: str):
     if trends_df.empty:
         trends_df = _dataset_cache[inst_match & branch_match].copy()
 
-    log.info("[DEBUG] Matching rows found: %d (using category base: %s)", len(trends_df), cat_base)
+    log.debug("[DEBUG] Matching rows found: %d (using category base: %s)", len(trends_df), cat_base)
 
     if not trends_df.empty:
         years_found = sorted(trends_df["year"].unique())
-        log.info("[DEBUG] Years found: %s", years_found)
-        log.info("[DEBUG] Cutoff range: %.2f → %.2f", trends_df["percentile_cutoff"].min(), trends_df["percentile_cutoff"].max())
+        log.debug("[DEBUG] Years found: %s", years_found)
+        log.debug("[DEBUG] Cutoff range: %.2f → %.2f", trends_df["percentile_cutoff"].min(), trends_df["percentile_cutoff"].max())
         
         trend_items = []
         metrics = calculate_historical_metrics(trends_df)
@@ -353,7 +353,7 @@ def get_trends(institute_code: str, branch_name: str, category: str):
             )
         }
 
-    log.info("[DEBUG] Returning empty trends response. No fallbacks used.")
+    log.debug("[DEBUG] Returning empty trends response. No fallbacks used.")
     return {
         "trends": [],
         "summary": TrendSummary(volatility=0.0, trend_direction="STABLE", avg_cutoff=0.0, latest_cutoff=0.0)
@@ -368,14 +368,14 @@ def get_college_analytics(institute_code: str, category: str):
     if _dataset_cache is None:
         raise HTTPException(status_code=503, detail="Dataset not loaded")
 
-    log.info("\n[DEBUG] Analytics Request:")
-    log.info("inst=%s", institute_code)
-    log.info("category=%s", category)
+    log.debug("\n[DEBUG] Analytics Request:")
+    log.debug("inst=%s", institute_code)
+    log.debug("category=%s", category)
 
     college_mask = (_dataset_cache["institute_code"].astype(str) == str(institute_code))
     college_data = _dataset_cache[college_mask]
 
-    log.info("[DEBUG] College data points found: %d", len(college_data))
+    log.debug("[DEBUG] College data points found: %d", len(college_data))
 
     if college_data.empty:
         log.warning("[DEBUG] No college analytics found for inst=%s. Returning empty analytics.", institute_code)
@@ -456,6 +456,7 @@ def get_colleges():
         })
     
     return results
+
 @app.post("/simulate", response_model=SimulateResponse, tags=["Simulation"])
 def simulate_allotment(request: SimulateRequest):
     """

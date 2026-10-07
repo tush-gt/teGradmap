@@ -279,7 +279,7 @@ export const PredictorLayout = () => {
                     </div>
                   </div>
                   <div className="px-4 py-1.5 rounded-full bg-emerald-600/20 text-emerald-400 text-[10px] font-black uppercase tracking-widest border border-emerald-600/30">
-                    2024 Context
+                    2025 Context
                   </div>
                 </div>
 

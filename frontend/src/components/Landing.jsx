@@ -369,11 +369,6 @@ export const Landing = () => {
       </section>
 
       <footer className="py-12 border-t border-white/5 text-center text-muted-foreground text-sm">
-        <div className="flex items-center justify-center gap-8 mb-6">
-          <Link to="/about" className="hover:text-foreground transition-colors">About</Link>
-          <Link to="/data" className="hover:text-foreground transition-colors">Data Transparency</Link>
-          <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
-        </div>
         <p>© 2025 GradMap Intelligence. Not affiliated with DTE/CET Cell.</p>
       </footer>
 
