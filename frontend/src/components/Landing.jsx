@@ -66,13 +66,21 @@ export const Landing = () => {
         </Link>
         
         <div className="hidden lg:flex items-center gap-8">
-          {['Predictor', 'Colleges', 'Simulator'].map((item) => (
+          {[
+            { label: 'Predictor', path: '/predictor' },
+            { label: 'Colleges', path: '/colleges' },
+            { label: 'Simulator', path: '/simulator' },
+            { label: 'AI Counsellor', path: '/counsellor', highlight: true },
+          ].map((item) => (
             <Link 
-              key={item}
-              to={`/${item.toLowerCase()}`} 
-              className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors relative group"
+              key={item.label}
+              to={item.path} 
+              className={`text-sm font-semibold transition-colors relative group flex items-center gap-1.5 ${
+                item.highlight ? 'text-emerald-400 font-bold' : 'text-muted-foreground hover:text-foreground'
+              }`}
             >
-              {item}
+              {item.highlight && <Sparkles className="w-3.5 h-3.5 text-amber-400" />}
+              {item.label}
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full" />
             </Link>
           ))}

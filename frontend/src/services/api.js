@@ -125,6 +125,36 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(body)
     });
+  },
+
+  // ── AI Counsellor (Google Gemini GenAI) ──────────────────
+  async aiChat({ message, history = [], profile = null }) {
+    return fetchAPI('/ai/chat', {
+      method: 'POST',
+      body: JSON.stringify({
+        message,
+        history,
+        profile
+      })
+    });
+  },
+
+  async getAIStatus() {
+    return fetchAPI('/ai/status');
+  },
+
+  async getAISuggestions({ percentile, category } = {}) {
+    const params = new URLSearchParams();
+    if (percentile) params.append('percentile', percentile);
+    if (category) params.append('category', category);
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    return fetchAPI(`/ai/suggested${qs}`);
+  },
+
+  async reloadAIEnv() {
+    return fetchAPI('/ai/reload-env', {
+      method: 'POST'
+    });
   }
 };
 

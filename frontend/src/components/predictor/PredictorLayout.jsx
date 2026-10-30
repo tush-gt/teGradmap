@@ -88,7 +88,13 @@ export const PredictorLayout = () => {
             </div>
             <span className="font-black text-xl text-gradient">GradMap</span>
           </Link>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <Link to="/counsellor">
+              <Button variant="outline" size="sm" className="flex items-center gap-1.5 text-emerald-400 border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-xs">
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                AI Counsellor
+              </Button>
+            </Link>
             <Link to="/simulator">
               <Button variant="ghost" size="sm" className="hidden sm:flex gap-2">
                 CAP Simulator <ChevronRight className="w-4 h-4" />

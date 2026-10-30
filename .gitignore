@@ -18,7 +18,14 @@ backend/dist/
 backend/*.egg-info/
 .installed.cfg
 *.egg
-MANIFEST
+# Environment variables
+.env
+.env.*
+*.env
+backend/.env
+backend/.env.*
+!.env.example
+!backend/.env.example
 
 # ------------------------------------------------------------------------------
 # NODE / FRONTEND

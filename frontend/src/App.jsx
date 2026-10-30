@@ -4,6 +4,8 @@ import { PredictorLayout } from './components/predictor/PredictorLayout';
 import { SimulatorLayout } from './components/simulator/SimulatorLayout';
 import { CollegesList } from './components/colleges/CollegesList';
 import { CollegeDetail } from './components/colleges/CollegeDetail';
+import { AICounsellor } from './components/counsellor/AICounsellor';
+import { FloatingAICounsellor } from './components/common/FloatingAICounsellor';
 
 function App() {
   return (
@@ -14,7 +16,9 @@ function App() {
         <Route path="/simulator" element={<SimulatorLayout />} />
         <Route path="/colleges" element={<CollegesList />} />
         <Route path="/colleges/:code" element={<CollegeDetail />} />
+        <Route path="/counsellor" element={<AICounsellor />} />
       </Routes>
+      <FloatingAICounsellor />
     </div>
   );
 }
