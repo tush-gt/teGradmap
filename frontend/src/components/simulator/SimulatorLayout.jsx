@@ -23,7 +23,7 @@ export const SimulatorLayout = () => {
       case 4: return <S4_OptionForm />;
       case 5: return <S5_Allotment />;
       case 6: return <S6_Decision />;
-      case 7: return <S5_Allotment />;
+      case 7: return <S4_OptionForm />;
       case 8: return <S8_Confirmed />;
       default: return <S1_Welcome />;
     }

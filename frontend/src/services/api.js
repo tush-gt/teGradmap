@@ -109,8 +109,6 @@ export const api = {
       profile: {
         percentile: parseFloat(profile.percentile),
         category: profile.category,
-        district: profile.district,
-        merit_rank: null // Calculated by backend
       },
       optionForm: optionForm.map(opt => ({
         college_code: opt.college_code || opt.code,
