@@ -74,6 +74,7 @@ class AIStatusResponse(BaseModel):
     configured: bool = Field(..., description="True if GEMINI_API_KEY is present and client is ready.")
     model: str = Field(..., description="Current configured Gemini model.")
     message: str = Field(..., description="Status description.")
+    ml_model_loaded: bool = Field(default=False, description="True if Scikit-learn Random Forest model is loaded.")
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -83,19 +84,26 @@ class AIStatusResponse(BaseModel):
 @router.get("/status", response_model=AIStatusResponse, summary="Check AI Assistant readiness")
 def get_ai_status() -> AIStatusResponse:
     """
-    Checks if Google Gemini API key is configured and returns the model name.
+    Checks if Google Gemini API key is configured and if the Scikit-learn model is ready.
     """
+    from models.utils.model_loader import is_model_available
     configured = ai_counsellor.is_configured()
-    if configured:
-        return AIStatusResponse(
-            configured=True,
-            model=ai_counsellor.model_name,
-            message="Google Gemini AI Counsellor is fully configured and ready.",
-        )
+    ml_ready = is_model_available()
+
+    if configured and ml_ready:
+        msg = "Google Gemini AI Counsellor & ML Random Forest Model are both online."
+    elif configured and not ml_ready:
+        msg = "Gemini is configured, but ML Random Forest model is offline."
+    elif not configured and ml_ready:
+        msg = "ML Model is online. Configure GEMINI_API_KEY in backend/.env for AI chat."
+    else:
+        msg = "Configure GEMINI_API_KEY in backend/.env and ensure ML model is loaded."
+
     return AIStatusResponse(
-        configured=False,
+        configured=configured,
         model=ai_counsellor.model_name,
-        message="GEMINI_API_KEY is not set. Add your free key to backend/.env to activate.",
+        message=msg,
+        ml_model_loaded=ml_ready,
     )
 
 
@@ -134,7 +142,7 @@ def get_suggested_questions(
     status_code=status.HTTP_200_OK,
     summary="Chat with GradMap AI Counselling Assistant",
 )
-def chat_with_counsellor(payload: AIChatRequest) -> AIChatResponse:
+async def chat_with_counsellor(payload: AIChatRequest) -> AIChatResponse:
     """
     Engage in conversational admission counselling grounded in actual MHT-CET
     historical cutoffs and ML predictions.
@@ -142,7 +150,9 @@ def chat_with_counsellor(payload: AIChatRequest) -> AIChatResponse:
     - Retrieves student's ML recommendations (SAFE / TARGET / AMBITIOUS).
     - Queries 230k+ cutoff dataset for relevant college trends.
     - Generates factual, empathetic advice using the Google Gemini Free Tier.
+    - Awaits the async aio Gemini client for fully non-blocking I/O.
     """
+
     # Import recommendation engine and cached dataset from main
     try:
         from api.main import _dataset_cache
@@ -157,12 +167,13 @@ def chat_with_counsellor(payload: AIChatRequest) -> AIChatResponse:
     profile_dict = payload.profile.model_dump() if payload.profile else None
 
     try:
-        result = ai_counsellor.generate_counselling_response(
-            user_message=payload.message,
-            conversation_history=history_dicts,
-            student_profile=profile_dict,
-            dataset=_dataset_cache,
-            recommend_fn=recommend,
+        # Directly await the async Gemini call (no thread pool needed — it's native async)
+        result = await ai_counsellor.generate_counselling_response(
+            payload.message,
+            history_dicts,
+            profile_dict,
+            _dataset_cache,
+            recommend,
         )
         return AIChatResponse(**result)
     except Exception as e:

@@ -6,27 +6,44 @@ const API_BASE_URL = 'http://localhost:8000';
 export const CATEGORIES = Object.keys(categoryMap.categories);
 export const BRANCHES = Object.keys(branchMap.branches);
 
-const fetchAPI = async (endpoint, options = {}) => {
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  });
-  
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.detail || 'API request failed');
+const fetchAPI = async (endpoint, options = {}, timeoutMs = 90000) => {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      ...options,
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+    });
+
+    if (!response.ok) {
+      let detail = 'API request failed';
+      try {
+        const error = await response.json();
+        detail = error.detail || detail;
+      } catch (_) { }
+      throw new Error(detail);
+    }
+
+    return response.json();
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      throw new Error(`Request timed out after ${Math.round(timeoutMs / 1000)} seconds. The AI is still processing — please try again shortly.`);
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
   }
-  
-  return response.json();
 };
 
 const getBranchFamily = (branch) => {
   if (!branch) return null;
   const b = String(branch).toUpperCase();
-  
+
   const csKeywords = ["COMPUTER", "INFORMATION TECHNOLOGY", "DATA SCIENCE", "ARTIFICIAL INTELLIGENCE", "MACHINE LEARNING", "IT", "SOFTWARE", "CYBER"];
   const circuitsKeywords = ["ELECTRONICS", "ELECTRICAL", "EXTC", "TELECOMMUNICATION", "INSTRUMENTATION"];
   const mechanicalKeywords = ["MECHANICAL", "PRODUCTION", "AUTOMOBILE", "AERONAUTICAL", "MECHATRONICS", "ROBOTICS"];
@@ -38,7 +55,7 @@ const getBranchFamily = (branch) => {
   if (mechanicalKeywords.some(k => b.includes(k))) return "CORE_MECHANICAL";
   if (civilKeywords.some(k => b.includes(k))) return "CIVIL_FAMILY";
   if (chemicalKeywords.some(k => b.includes(k))) return "CHEMICAL_FAMILY";
-  
+
   return "OTHER";
 };
 
@@ -127,6 +144,7 @@ export const api = {
 
   // ── AI Counsellor (Google Gemini GenAI) ──────────────────
   async aiChat({ message, history = [], profile = null }) {
+    // AI chat uses 120s timeout — Gemini Free Tier can take up to 60-90s
     return fetchAPI('/ai/chat', {
       method: 'POST',
       body: JSON.stringify({
@@ -134,7 +152,7 @@ export const api = {
         history,
         profile
       })
-    });
+    }, 120000);
   },
 
   async getAIStatus() {

@@ -80,14 +80,22 @@ def validate_feature_columns(input_df: pd.DataFrame) -> bool:
         
     return True
 
-def predict_probability(input_df: pd.DataFrame) -> np.ndarray:
+def is_model_available() -> bool:
+    """Returns True if the ML model is cached or can be successfully loaded."""
+    try:
+        get_model()
+        return True
+    except Exception:
+        return False
+
+def predict_probability(input_df: pd.DataFrame) -> np.ndarray | None:
     """
-    Takes a DataFrame of features and returns a numpy array of admission probabilities.
-    
-    Raises ValueError if input lacks required features.
+    Takes a DataFrame of features and returns a numpy array of genuine admission probabilities.
+    Returns None if the ML model is unavailable (never fabricates 50% predictions).
     """
     if not validate_feature_columns(input_df):
-        raise ValueError("Input DataFrame is missing required features. Check logs for details.")
+        logger.warning("Input DataFrame missing required features for ML model.")
+        return None
         
     try:
         model = get_model()
@@ -97,9 +105,8 @@ def predict_probability(input_df: pd.DataFrame) -> np.ndarray:
         probabilities = model.predict_proba(X)[:, 1]
         return probabilities
     except (FileNotFoundError, RuntimeError) as e:
-        logger.warning(f"ML Model unavailable, using neutral probabilities. Error: {e}")
-        # Return neutral 0.5 probability for all rows if model is missing
-        return np.full(len(input_df), 0.5)
+        logger.warning(f"ML Model unavailable: {e}. Genuine ML inference will be marked unavailable.")
+        return None
     except Exception as e:
         logger.error(f"Error during probability prediction: {str(e)}")
-        raise RuntimeError(f"Prediction failed: {str(e)}") from e
+        return None

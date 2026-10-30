@@ -135,8 +135,12 @@ def recommend(
     
     # 7. Run Inference & Attach Metadata
     probabilities = predict_probability(df)
-    df["probability"] = probabilities
-    df["ml_probability"] = probabilities
+    if probabilities is not None:
+        df["probability"] = probabilities
+        df["ml_probability"] = probabilities
+    else:
+        df["probability"] = np.nan
+        df["ml_probability"] = None
     df = attach_probability_metadata(df)
 
     # 8. Rank and Diversify using Intelligence Engine

@@ -41,7 +41,8 @@ export const AICounsellor = () => {
   const [showProfileDrawer, setShowProfileDrawer] = useState(false);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [aiStatus, setAiStatus] = useState({ configured: false, model: 'gemini-2.5-flash', message: 'Checking...' });
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [aiStatus, setAiStatus] = useState({ configured: false, model: 'gemini-2.0-flash', message: 'Checking...' });
   const [suggestions, setSuggestions] = useState([
     "Which colleges can I get with my percentile?",
     "Why is a college classified as Safe, Target or Ambitious?",
@@ -91,7 +92,8 @@ Here is what I can do for you:
       setAiStatus({
         configured: false,
         model: 'gemini-2.5-flash',
-        message: 'Could not connect to FastAPI backend. Ensure backend is running.'
+        message: 'Could not connect to FastAPI backend. Ensure backend is running.',
+        ml_model_loaded: false,
       });
     }
   };
@@ -99,11 +101,8 @@ Here is what I can do for you:
   const handleReloadEnv = async () => {
     try {
       const res = await api.reloadAIEnv();
-      setAiStatus({
-        configured: res.configured,
-        model: res.model,
-        message: res.message
-      });
+      const statusRes = await api.getAIStatus();
+      setAiStatus(statusRes);
     } catch (e) {
       console.error('Failed to reload .env', e);
     }
@@ -124,6 +123,13 @@ Here is what I can do for you:
     setMessages((prev) => [...prev, userMsg]);
     setInputMessage('');
     setIsLoading(true);
+    setElapsedSeconds(0);
+
+    // Start elapsed seconds timer
+    const timerStart = Date.now();
+    const intervalId = setInterval(() => {
+      setElapsedSeconds(Math.floor((Date.now() - timerStart) / 1000));
+    }, 1000);
 
     try {
       // Build conversation history (excluding the very first welcome message)
@@ -167,7 +173,9 @@ Here is what I can do for you:
       };
       setMessages((prev) => [...prev, errorMsg]);
     } finally {
+      clearInterval(intervalId);
       setIsLoading(false);
+      setElapsedSeconds(0);
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   };
@@ -227,6 +235,19 @@ Ask me anything about your admission path with your current profile (**${profile
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* ML Model Status Badge */}
+            <div
+              title={aiStatus.ml_model_loaded ? "Scikit-learn Random Forest model loaded in memory" : "ML Model missing"}
+              className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${
+                aiStatus.ml_model_loaded
+                  ? 'bg-teal-500/10 border-teal-500/30 text-teal-300'
+                  : 'bg-rose-500/10 border-rose-500/30 text-rose-300'
+              }`}
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-teal-400" />
+              <span className="hidden md:inline">{aiStatus.ml_model_loaded ? 'ML Pipeline Active' : 'ML Model Offline'}</span>
+            </div>
+
             {/* API Status Badge */}
             <button
               onClick={checkStatus}
@@ -505,7 +526,7 @@ Ask me anything about your admission path with your current profile (**${profile
             );
           })}
 
-          {/* Loading Indicator */}
+          {/* Loading Indicator with Elapsed Timer */}
           {isLoading && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -515,15 +536,40 @@ Ask me anything about your admission path with your current profile (**${profile
               <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-600 flex items-center justify-center text-white shrink-0 shadow-md shadow-emerald-500/20 animate-pulse">
                 <Bot className="w-5 h-5" />
               </div>
-              <div className="glass-morphism rounded-3xl rounded-tl-sm p-4 px-6 border-white/10 flex items-center gap-3 shadow-lg">
-                <div className="flex gap-1.5">
-                  <span className="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
-                  <span className="w-2.5 h-2.5 bg-teal-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
-                  <span className="w-2.5 h-2.5 bg-amber-400 rounded-full animate-bounce" />
+              <div className="glass-morphism rounded-3xl rounded-tl-sm p-4 px-5 border-white/10 shadow-lg max-w-sm">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="flex gap-1.5">
+                    <span className="w-2 h-2 bg-emerald-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                    <span className="w-2 h-2 bg-teal-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                    <span className="w-2 h-2 bg-amber-400 rounded-full animate-bounce" />
+                  </div>
+                  <span className="text-xs text-muted-foreground font-medium">
+                    {elapsedSeconds < 5
+                      ? 'Analyzing ML predictions & cutoff data...'
+                      : elapsedSeconds < 15
+                      ? 'Querying Gemini AI...'
+                      : elapsedSeconds < 30
+                      ? 'Gemini is drafting your response...'
+                      : 'Almost there — Gemini Free Tier may be busy...'}
+                  </span>
                 </div>
-                <span className="text-xs text-muted-foreground font-medium">
-                  GradMap AI is analyzing ML predictions & historical cutoffs...
-                </span>
+                <div className="flex items-center justify-between text-[11px] text-muted-foreground/70">
+                  <span className="font-mono text-emerald-400 font-bold tabular-nums">
+                    ⏱ {elapsedSeconds}s
+                  </span>
+                  {elapsedSeconds >= 15 && (
+                    <span className="text-amber-400/80 text-[10px]">
+                      Free tier can take up to 60s
+                    </span>
+                  )}
+                </div>
+                {/* Subtle progress bar */}
+                <div className="mt-2 h-0.5 bg-white/5 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-1000"
+                    style={{ width: `${Math.min((elapsedSeconds / 60) * 100, 95)}%` }}
+                  />
+                </div>
               </div>
             </motion.div>
           )}
