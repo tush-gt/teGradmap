@@ -18,7 +18,6 @@ Version : 2.0.0
 from __future__ import annotations
 
 import logging
-import asyncio
 import os
 import re
 import time
@@ -278,7 +277,7 @@ class AICounsellor:
     # Response Generation with Gemini & Exponential Backoff
     # ──────────────────────────────────────────────────────────────────────────
 
-    async def generate_counselling_response(
+    def generate_counselling_response(
         self,
         user_message: str,
         conversation_history: list[dict[str, str]] | None = None,
@@ -291,7 +290,6 @@ class AICounsellor:
         - Exponential backoff retry on 503 and 429
         - Handling of 401 unauthenticated
         - Safe model fallbacks
-        - Uses async aio client for non-blocking Gemini I/O
         """
         if not self.is_configured():
             self._init_client()
@@ -388,7 +386,7 @@ class AICounsellor:
                             log.warning("Gemini temporary error (%s) on model '%s'. Retrying in %.1fs (attempt %d/%d)...",
                                         "503 High Demand" if "503" in err_str else "429 Rate Limit",
                                         current_model, delay, attempt + 1, max_transient_retries)
-                            await asyncio.sleep(delay)
+                            time.sleep(delay)
                             continue
                         else:
                             log.warning("All retries exhausted for model '%s'.", current_model)
